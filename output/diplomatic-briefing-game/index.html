@@ -1,0 +1,1737 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>外交部例行记者会模拟现场</title>
+  <style>
+    :root {
+      --ink: #eef6ff;
+      --muted: #b8c7d9;
+      --panel: rgba(8, 18, 30, .86);
+      --panel-strong: rgba(5, 12, 21, .94);
+      --line: rgba(205, 226, 255, .2);
+      --gold: #d7b46a;
+      --blue: #4f8fd8;
+      --ok: #6dd6a5;
+      --warn: #e5be62;
+      --danger: #e38282;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #050914;
+      color: var(--ink);
+      font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      letter-spacing: 0;
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+      border: 0;
+      cursor: pointer;
+    }
+
+    #app {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      min-width: 980px;
+      min-height: 620px;
+      background: #06101f;
+      user-select: none;
+    }
+
+    .stage {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 30%, rgba(90, 136, 190, .18), transparent 45%), #050914;
+    }
+
+    .room {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      width: 125vw;
+      height: 100vh;
+      max-width: none;
+      object-fit: cover;
+      transform: translateX(calc(-50% + var(--look, 0px)));
+      transition: transform .12s ease-out;
+      filter: saturate(.92) contrast(1.02) brightness(.82);
+      pointer-events: none;
+    }
+
+    .vignette {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(1, 4, 10, .15), transparent 35%, rgba(1, 4, 10, .42)),
+        radial-gradient(circle at 50% 42%, transparent 35%, rgba(0, 0, 0, .52) 100%);
+      pointer-events: none;
+    }
+
+    .journalists {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .journalist {
+      --depth: 1;
+      position: absolute;
+      left: calc(var(--x) * 1%);
+      top: calc(var(--y) * 1%);
+      width: 132px;
+      height: 78px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      transform: translate(-50%, -50%);
+      transform-origin: 50% 50%;
+      transition: filter .15s ease, opacity .15s ease;
+      pointer-events: auto;
+      opacity: .92;
+    }
+
+    .journalist[aria-disabled="true"] {
+      pointer-events: none;
+    }
+
+    .head, .body, .arm, .desk, .device, .badge {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .head, .body, .arm, .desk, .device {
+      display: none;
+    }
+
+    .head {
+      top: 7%;
+      width: 26%;
+      height: 24%;
+      border-radius: 45% 45% 42% 42%;
+      background: linear-gradient(145deg, #d5bd9d, #7f6654 60%, #231d1b);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, .42);
+    }
+
+    .body {
+      bottom: 15%;
+      width: 60%;
+      height: 58%;
+      border-radius: 42% 42% 10% 10%;
+      background: linear-gradient(145deg, #1c2734, #07101c 72%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+    }
+
+    .arm {
+      top: -5%;
+      width: 13%;
+      height: 56%;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #202d3b, #070c13);
+      transform-origin: 50% 100%;
+      opacity: 0;
+    }
+
+    .journalist.raised .arm {
+      opacity: 1;
+      left: 68%;
+      transform: translateX(-50%) rotate(-24deg);
+    }
+
+    .journalist.raised .arm::after {
+      content: "";
+      position: absolute;
+      top: -16%;
+      left: 50%;
+      width: 155%;
+      height: 28%;
+      border-radius: 999px;
+      background: #caa984;
+      transform: translateX(-50%);
+    }
+
+    .desk {
+      bottom: 0;
+      width: 96%;
+      height: 23%;
+      border-radius: 4px 4px 2px 2px;
+      background: linear-gradient(180deg, rgba(40, 54, 70, .9), rgba(9, 16, 24, .96));
+      box-shadow: 0 14px 20px rgba(0, 0, 0, .34);
+    }
+
+    .device {
+      bottom: 10%;
+      width: 26%;
+      height: 10%;
+      border-radius: 2px;
+      background: rgba(210, 225, 240, .16);
+    }
+
+    .badge {
+      top: 45px;
+      min-width: 86px;
+      padding: 4px 8px;
+      border: 1px solid rgba(226, 238, 255, .28);
+      border-radius: 4px;
+      background: rgba(6, 14, 25, .75);
+      color: #dcecff;
+      text-align: center;
+      font-size: 13px;
+      opacity: 0;
+      white-space: nowrap;
+    }
+
+    .journalist.raised.near .badge,
+    .journalist.done .badge {
+      opacity: 1;
+    }
+
+    .journalist.raised.near {
+      filter: drop-shadow(0 0 16px rgba(215, 180, 106, .85));
+    }
+
+    .journalist.raised.near::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 112px;
+      height: 68px;
+      border: 1px solid rgba(215, 180, 106, .72);
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(215, 180, 106, .16), transparent 66%);
+      box-shadow: 0 0 22px rgba(215, 180, 106, .42);
+      transform: translate(-50%, -50%);
+    }
+
+    .journalist.done {
+      opacity: .58;
+      filter: grayscale(.25);
+    }
+
+    .click-tip {
+      position: absolute;
+      left: 50%;
+      top: -18px;
+      transform: translateX(-50%);
+      width: 118px;
+      padding: 6px 8px;
+      border: 1px solid rgba(215, 180, 106, .65);
+      border-radius: 4px;
+      background: rgba(11, 17, 24, .9);
+      color: #ffe2a3;
+      font-size: 13px;
+      text-align: center;
+      opacity: 0;
+    }
+
+    .journalist.raised.near:not(.done) .click-tip {
+      opacity: 1;
+    }
+
+    .podium {
+      position: absolute;
+      left: 50%;
+      bottom: -7vh;
+      width: min(88vw, 1320px);
+      max-height: 53vh;
+      transform: translateX(-50%);
+      object-fit: contain;
+      pointer-events: none;
+      filter: drop-shadow(0 -8px 30px rgba(0, 0, 0, .36));
+      z-index: 15;
+    }
+
+    .topbar {
+      position: absolute;
+      top: 18px;
+      left: 24px;
+      right: 24px;
+      z-index: 30;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      pointer-events: none;
+    }
+
+    .status {
+      padding: 11px 14px;
+      border: 1px solid rgba(231, 242, 255, .18);
+      border-radius: 6px;
+      background: rgba(5, 13, 23, .62);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 12px 28px rgba(0,0,0,.18);
+    }
+
+    .status h1 {
+      margin: 0 0 5px;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .status p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .teacher-hotspot {
+      pointer-events: auto;
+      width: 34px;
+      height: 34px;
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 50%;
+      background: rgba(6, 15, 28, .6);
+      display: grid;
+      place-items: center;
+    }
+
+    .teacher-hotspot::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(215, 180, 106, .86);
+      box-shadow: 0 0 14px rgba(215, 180, 106, .7);
+    }
+
+    .hold-ring {
+      position: absolute;
+      top: 53px;
+      right: 7px;
+      width: 48px;
+      height: 4px;
+      border-radius: 99px;
+      background: rgba(255,255,255,.12);
+      overflow: hidden;
+      opacity: 0;
+    }
+
+    .hold-ring span {
+      display: block;
+      width: var(--hold, 0%);
+      height: 100%;
+      background: var(--gold);
+    }
+
+    .hold-ring.active { opacity: 1; }
+
+    .side-screen {
+      position: absolute;
+      top: 88px;
+      right: 24px;
+      z-index: 20;
+      width: min(25vw, 370px);
+      min-width: 300px;
+      max-height: calc(100vh - 238px);
+      padding: 14px;
+      border: 1px solid rgba(198, 220, 245, .22);
+      border-radius: 6px;
+      background: rgba(8, 20, 34, .76);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 18px 36px rgba(0,0,0,.28);
+      overflow: auto;
+    }
+
+    .side-screen.hidden {
+      display: none;
+    }
+
+    .material-toggle {
+      position: absolute;
+      left: 24px;
+      top: 116px;
+      z-index: 34;
+      min-height: 38px;
+      padding: 8px 13px;
+      border: 1px solid rgba(215, 180, 106, .42);
+      border-radius: 5px;
+      background: rgba(7, 16, 28, .78);
+      color: #ffe3a4;
+      box-shadow: 0 12px 28px rgba(0,0,0,.24);
+    }
+
+    .teacher-materials {
+      position: absolute;
+      left: 24px;
+      top: 164px;
+      z-index: 34;
+      width: min(31vw, 430px);
+      min-width: 330px;
+      max-height: calc(100vh - 210px);
+      padding: 15px;
+      border: 1px solid rgba(215, 180, 106, .28);
+      border-radius: 6px;
+      background: rgba(8, 18, 30, .88);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 18px 36px rgba(0,0,0,.32);
+      overflow: auto;
+    }
+
+    .teacher-materials.hidden {
+      display: none;
+    }
+
+    .teacher-materials h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .teacher-materials h3 {
+      margin: 14px 0 6px;
+      color: #f2d790;
+      font-size: 15px;
+    }
+
+    .teacher-materials p,
+    .teacher-materials li {
+      color: #d4e0ee;
+      font-size: 14px;
+      line-height: 1.56;
+    }
+
+    .side-screen h2, .card-panel h2 {
+      margin: 0 0 10px;
+      font-size: 17px;
+    }
+
+    .map-hint {
+      position: relative;
+      height: 128px;
+      margin: 0 0 12px;
+      border: 1px solid rgba(214, 232, 255, .16);
+      border-radius: 4px;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse at 28% 45%, rgba(69, 110, 136, .42), transparent 32%),
+        radial-gradient(ellipse at 72% 56%, rgba(64, 97, 118, .38), transparent 28%),
+        linear-gradient(135deg, #0a2943, #0d1d2b 72%);
+    }
+
+    .map-hint::before {
+      content: "";
+      position: absolute;
+      left: 18%;
+      top: 24%;
+      width: 60%;
+      height: 56%;
+      border-right: 3px solid rgba(231, 193, 107, .85);
+      border-radius: 46%;
+      transform: rotate(-16deg);
+    }
+
+    .map-dot {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #f1c15f;
+      box-shadow: 0 0 0 5px rgba(241, 193, 95, .18);
+    }
+
+    .map-dot.one { left: 45%; top: 47%; }
+    .map-dot.two { left: 68%; top: 58%; background: #7fb1dc; box-shadow: 0 0 0 5px rgba(127,177,220,.18); }
+
+    .map-label {
+      position: absolute;
+      padding: 3px 6px;
+      border-radius: 3px;
+      background: rgba(4, 11, 19, .68);
+      color: #dbefff;
+      font-size: 12px;
+    }
+
+    .map-label.a { left: 35%; top: 28%; }
+    .map-label.b { right: 9%; bottom: 20%; }
+
+    .evidence-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .evidence {
+      width: 100%;
+      min-height: 54px;
+      padding: 9px 10px;
+      border: 1px solid rgba(219, 233, 250, .18);
+      border-radius: 5px;
+      background: rgba(255,255,255,.055);
+      text-align: left;
+      line-height: 1.35;
+    }
+
+    .evidence strong {
+      display: block;
+      margin-bottom: 2px;
+      color: #f2f7ff;
+      font-size: 14px;
+    }
+
+    .evidence span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .evidence.selected {
+      border-color: rgba(215, 180, 106, .88);
+      background: rgba(215, 180, 106, .16);
+      box-shadow: inset 0 0 0 1px rgba(215, 180, 106, .22);
+    }
+
+    .evidence.hinted {
+      border-color: rgba(109, 214, 165, .86);
+      background: rgba(109, 214, 165, .16);
+    }
+
+    .evidence.wrong {
+      border-color: rgba(255, 110, 110, .92);
+      background: rgba(160, 38, 38, .22);
+      box-shadow: inset 0 0 0 1px rgba(255, 110, 110, .22);
+    }
+
+    .evidence.wrong strong {
+      color: #ffd1d1;
+    }
+
+    .card-panel {
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      bottom: 24px;
+      z-index: 40;
+      min-height: 188px;
+      max-height: 64vh;
+      padding: 16px;
+      border: 1px solid rgba(221, 236, 255, .22);
+      border-radius: 7px;
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 22px 54px rgba(0,0,0,.46);
+      overflow: auto;
+    }
+
+    .evidence-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 8px;
+      margin: 0 0 12px;
+      padding: 10px;
+      border: 1px solid rgba(215, 180, 106, .18);
+      border-radius: 6px;
+      background: rgba(215, 180, 106, .055);
+    }
+
+    .evidence-strip-title {
+      grid-column: 1 / -1;
+      color: #f4d88f;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .card-panel.hidden,
+    .summary.hidden,
+    .teacher-panel.hidden,
+    .answer-modal.hidden,
+    .intro.hidden {
+      display: none;
+    }
+
+    .question-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .question-head small {
+      color: var(--gold);
+      font-size: 14px;
+    }
+
+    .question-text {
+      margin: 0 0 13px;
+      color: #edf5ff;
+      font-size: 18px;
+      line-height: 1.45;
+    }
+
+    .panel-grid {
+      display: grid;
+      grid-template-columns: minmax(260px, .9fr) minmax(390px, 1.4fr);
+      gap: 14px;
+    }
+
+    .evidence:hover {
+      border-color: rgba(215, 180, 106, .58);
+      background: rgba(255,255,255,.095);
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 9px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      min-height: 38px;
+      padding: 8px 13px;
+      border: 1px solid rgba(228, 239, 255, .18);
+      border-radius: 5px;
+      background: rgba(255,255,255,.08);
+    }
+
+    .btn.primary {
+      color: #08111d;
+      background: linear-gradient(180deg, #f1d58c, #c99d43);
+      border-color: rgba(255, 237, 174, .5);
+      font-weight: 700;
+    }
+
+    .btn.ghost {
+      color: var(--muted);
+    }
+
+    .feedback {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .metric {
+      padding: 10px;
+      border: 1px solid rgba(218, 234, 255, .16);
+      border-radius: 5px;
+      background: rgba(255,255,255,.05);
+    }
+
+    .metric label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 7px;
+      color: #dfeeff;
+      font-size: 13px;
+    }
+
+    .bar {
+      height: 7px;
+      border-radius: 99px;
+      background: rgba(255,255,255,.12);
+      overflow: hidden;
+    }
+
+    .bar span {
+      display: block;
+      width: calc(var(--score) * 33.333%);
+      height: 100%;
+      background: linear-gradient(90deg, #6dd6a5, #e7c36b);
+    }
+
+    .notice {
+      margin-top: 11px;
+      padding: 10px 12px;
+      border-left: 3px solid var(--warn);
+      background: rgba(229, 190, 98, .1);
+      color: #f5e7be;
+      line-height: 1.45;
+    }
+
+    .model-answer {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border: 1px solid rgba(109, 214, 165, .32);
+      border-radius: 5px;
+      background: rgba(109, 214, 165, .09);
+      line-height: 1.58;
+    }
+
+    .summary, .teacher-panel, .answer-modal, .intro {
+      position: absolute;
+      inset: 0;
+      z-index: 80;
+      display: grid;
+      place-items: center;
+      padding: 38px;
+      background: rgba(2, 7, 14, .86);
+      backdrop-filter: blur(8px);
+    }
+
+    .modal {
+      width: min(980px, 92vw);
+      max-height: 88vh;
+      overflow: auto;
+      padding: 24px;
+      border: 1px solid rgba(228, 239, 255, .2);
+      border-radius: 8px;
+      background: rgba(8, 18, 30, .96);
+      box-shadow: 0 26px 70px rgba(0,0,0,.56);
+    }
+
+    .speaker-modal {
+      width: min(1040px, 92vw);
+      border-color: rgba(241, 213, 140, .42);
+      background: rgba(6, 16, 28, .97);
+    }
+
+    .speaker-modal .speaker-tag {
+      display: inline-flex;
+      align-items: center;
+      margin-bottom: 10px;
+      padding: 5px 9px;
+      border: 1px solid rgba(241, 213, 140, .34);
+      border-radius: 4px;
+      color: #f4d88f;
+      background: rgba(241, 213, 140, .08);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .speaker-answer {
+      margin-top: 16px;
+      padding: 20px 22px;
+      border: 1px solid rgba(109, 214, 165, .34);
+      border-radius: 6px;
+      background: rgba(109, 214, 165, .1);
+      color: #edf7ff;
+      font-size: 22px;
+      line-height: 1.78;
+      font-weight: 650;
+    }
+
+    .modal h2 {
+      margin: 0 0 12px;
+      font-size: 26px;
+    }
+
+    .modal p, .modal li {
+      color: #d2dfef;
+      line-height: 1.62;
+      font-size: 16px;
+    }
+
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 18px 0;
+    }
+
+    .summary-card {
+      padding: 14px;
+      border: 1px solid rgba(109, 214, 165, .28);
+      border-radius: 6px;
+      background: rgba(109, 214, 165, .09);
+      min-height: 112px;
+    }
+
+    .teacher-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .teacher-box {
+      padding: 13px;
+      border: 1px solid rgba(218, 234, 255, .16);
+      border-radius: 6px;
+      background: rgba(255,255,255,.045);
+    }
+
+    .intro .modal {
+      text-align: center;
+      background:
+        radial-gradient(circle at 50% 10%, rgba(69, 143, 216, .22), transparent 44%),
+        rgba(8, 18, 30, .94);
+    }
+
+    .call-modal {
+      width: min(620px, 88vw);
+      min-height: 430px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+    }
+
+    .intro h2 {
+      font-size: 34px;
+      margin-bottom: 8px;
+    }
+
+    .intro p {
+      margin: 0 0 18px;
+      color: var(--muted);
+    }
+
+    .call-orb {
+      position: relative;
+      width: 138px;
+      height: 138px;
+      margin: 10px auto 24px;
+      border: 1px solid rgba(109, 214, 165, .42);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle, rgba(109, 214, 165, .24), rgba(27, 79, 72, .28) 58%, rgba(8, 18, 30, .1));
+      box-shadow: 0 0 34px rgba(109, 214, 165, .28);
+    }
+
+    .call-orb::before,
+    .call-orb::after {
+      content: "";
+      position: absolute;
+      inset: -14px;
+      border: 1px solid rgba(109, 214, 165, .28);
+      border-radius: 50%;
+      animation: callPulse 1.8s ease-out infinite;
+    }
+
+    .call-orb::after {
+      inset: -30px;
+      animation-delay: .55s;
+    }
+
+    .call-icon {
+      width: 54px;
+      height: 54px;
+      display: grid;
+      place-items: center;
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,.28));
+    }
+
+    .call-icon svg {
+      width: 54px;
+      height: 54px;
+      stroke: #dfffee;
+      stroke-width: 2.4;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .call-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin: 0 0 10px;
+      color: #9ee9c8;
+      font-size: 15px;
+    }
+
+    .call-status span {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #9ee9c8;
+      animation: dotBlink 1.1s ease-in-out infinite;
+    }
+
+    .connect-btn {
+      min-width: 148px;
+      min-height: 46px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #7ee0ad, #2d9d70);
+      color: #04120c;
+      font-weight: 800;
+      box-shadow: 0 14px 28px rgba(45, 157, 112, .28);
+    }
+
+    .intro.connecting {
+      pointer-events: none;
+      animation: introFadeOut 1.05s ease-in forwards;
+    }
+
+    .intro.connecting .call-modal {
+      animation: connectModalOut 1.05s cubic-bezier(.2, .85, .2, 1) forwards;
+    }
+
+    .intro.connecting .call-orb::before,
+    .intro.connecting .call-orb::after {
+      animation-duration: .55s;
+    }
+
+    .intro.connecting::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent 0 47%, rgba(180, 236, 255, .75) 50%, transparent 53%),
+        radial-gradient(circle at 50% 50%, rgba(126, 224, 173, .28), transparent 38%);
+      opacity: 0;
+      transform: scaleX(.02);
+      animation: signalOpen 1.05s cubic-bezier(.2, .85, .2, 1) forwards;
+    }
+
+    @keyframes callPulse {
+      0% { transform: scale(.84); opacity: .85; }
+      100% { transform: scale(1.22); opacity: 0; }
+    }
+
+    @keyframes dotBlink {
+      0%, 100% { opacity: .35; transform: translateY(0); }
+      50% { opacity: 1; transform: translateY(-2px); }
+    }
+
+    @keyframes connectModalOut {
+      0% { transform: scale(1); opacity: 1; filter: blur(0); }
+      38% { transform: scale(.96); opacity: .92; filter: blur(0); }
+      100% { transform: scale(1.08); opacity: 0; filter: blur(8px); }
+    }
+
+    @keyframes signalOpen {
+      0% { opacity: 0; transform: scaleX(.02); }
+      28% { opacity: .95; transform: scaleX(.08); }
+      72% { opacity: .55; transform: scaleX(1); }
+      100% { opacity: 0; transform: scaleX(1); }
+    }
+
+    @keyframes introFadeOut {
+      0%, 55% { background: rgba(2, 7, 14, .86); backdrop-filter: blur(8px); }
+      100% { background: rgba(2, 7, 14, 0); backdrop-filter: blur(0); }
+    }
+
+    .flash {
+      position: absolute;
+      inset: 0;
+      z-index: 70;
+      background: white;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .flash.on {
+      animation: flash .28s ease-out;
+    }
+
+    .quick-start {
+      position: absolute;
+      left: 24px;
+      bottom: 24px;
+      z-index: 35;
+      padding: 10px 13px;
+      border: 1px solid rgba(215, 180, 106, .5);
+      border-radius: 5px;
+      background: rgba(7, 16, 28, .82);
+      color: #ffe3a4;
+      box-shadow: 0 12px 30px rgba(0,0,0,.28);
+    }
+
+    .quick-start.hidden {
+      display: none;
+    }
+
+    @keyframes flash {
+      0% { opacity: 0; }
+      28% { opacity: .42; }
+      100% { opacity: 0; }
+    }
+
+    @media (max-width: 1100px) {
+      #app { min-width: 760px; }
+      .side-screen {
+        width: 290px;
+        min-width: 290px;
+      }
+      .panel-grid {
+        grid-template-columns: 1fr;
+      }
+      .feedback,
+      .summary-cards,
+      .teacher-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main id="app" aria-label="外交部例行记者会模拟现场">
+    <div class="topbar">
+      <div class="status">
+        <h1>外交部例行记者会模拟现场</h1>
+        <p id="statusText">移动鼠标环顾会场，点击进入视野的举手记者。</p>
+      </div>
+      <div style="position:relative; pointer-events:auto;">
+        <button class="teacher-hotspot" id="teacherHotspot" title="长按 2 秒打开教师资料"></button>
+        <div class="hold-ring" id="holdRing"><span></span></div>
+      </div>
+    </div>
+
+    <button class="material-toggle" id="materialToggle" onclick="toggleTeacherMaterials()">教师材料</button>
+    <aside class="teacher-materials hidden" id="teacherMaterials" aria-label="教师材料">
+      <h2>教师材料</h2>
+      <p>本区供教师备课和现场点拨使用，不参与学生证据选择。</p>
+      <h3>课堂主线</h3>
+      <p>真实情境 -> 记者提问 -> 学生筛选证据 -> 发言人回应 -> 教师用证据链收束。</p>
+      <h3>材料口径</h3>
+      <ul>
+        <li>历史先占与持续管辖：早期认知、长期开发利用、官方测量、命名确认与持续管理共同构成证据链。</li>
+        <li>条约界限：相关国际条约界定菲律宾领土范围，未将黄岩岛纳入其中。</li>
+        <li>自然地理线索：大陆架自然延伸与马尼拉海沟等可作为空间解释材料。</li>
+      </ul>
+      <h3>点拨提醒</h3>
+      <p>不要让学生把“距离近”“渔民去过”“态度强硬”当成单独充分依据，要引导他们组合材料、克制表达。</p>
+      <div class="actions" style="justify-content:flex-start;">
+        <button class="btn ghost" onclick="toggleTeacherMaterials()">收起</button>
+      </div>
+    </aside>
+
+    <aside class="side-screen hidden" id="sideScreen" aria-label="证据屏">
+      <h2>现场证据屏</h2>
+      <div class="map-hint" aria-label="课堂示意图">
+        <span class="map-dot one"></span>
+        <span class="map-dot two"></span>
+        <span class="map-label a">争议焦点海域</span>
+        <span class="map-label b">天然分界线索</span>
+      </div>
+      <div class="evidence-list" id="evidenceList"></div>
+    </aside>
+
+    <section class="card-panel hidden" id="cardPanel" aria-live="polite"></section>
+
+    <section class="summary hidden" id="summary"></section>
+    <section class="answer-modal hidden" id="answerModal" aria-live="polite"></section>
+    <section class="teacher-panel hidden" id="teacherPanel"></section>
+    <section class="intro" id="intro"></section>
+
+    <section class="stage" id="stage">
+      <img class="room" src="assets/briefing-room-seated.png" alt="">
+      <div class="journalists" id="journalists"></div>
+      <div class="vignette"></div>
+      <img class="podium" src="assets/podium-foreground-nomic.png" alt="">
+      <div class="flash" id="flash"></div>
+    </section>
+  </main>
+
+  <script>
+    const settings = {
+      showIntro: localStorage.getItem("briefing.callIntro") !== "false",
+      sound: localStorage.getItem("briefing.sound") !== "false"
+    };
+
+    const evidenceBank = [
+      {
+        id: "distance-not-rule",
+        title: "距离不能直接决定归属",
+        desc: "空间距离可以帮助理解位置，但不能单独作为领土归属判断标准。",
+        type: "correct"
+      },
+      {
+        id: "treaty-limit",
+        title: "法定领土界线没有包括相关岛礁",
+        desc: "相关条约界定了菲律宾领土范围，西部界限并未纳入该岛礁。",
+        type: "correct"
+      },
+      {
+        id: "history-control",
+        title: "长期发现、利用与持续管辖",
+        desc: "早期认知、长期开发、官方测量、命名和管辖共同构成历史证据链。",
+        type: "correct"
+      },
+      {
+        id: "alaska-example",
+        title: "阿拉斯加类比例证",
+        desc: "若只按距离判定，阿拉斯加离俄罗斯更近却属于美国，说明距离不是主权归属标准。",
+        type: "correct"
+      },
+      {
+        id: "territory-practice",
+        title: "优先看开发、管控与活动痕迹",
+        desc: "领土判定应看最早开发、长期实际管控和世代民众活动痕迹，而非单纯地理位置远近。",
+        type: "correct"
+      },
+      {
+        id: "official-measure",
+        title: "官方测量与治理线索",
+        desc: "历史上的官方实测与管理活动，能补强单纯民间活动的证据不足。",
+        type: "correct"
+      },
+      {
+        id: "naming",
+        title: "近代正式命名与确认",
+        desc: "近代官方定名和行政确认，体现国家层面的持续管理。",
+        type: "correct"
+      },
+      {
+        id: "fishing",
+        title: "长期捕鱼、避风和补给活动",
+        desc: "长期生产生活实践能说明发现和利用，但需要与官方证据共同使用。",
+        type: "correct"
+      },
+      {
+        id: "natural-boundary",
+        title: "天然地理分界线索",
+        desc: "大陆架自然延伸与深海沟等地貌差异，可作为空间解释材料。",
+        type: "correct"
+      },
+      {
+        id: "near-wins",
+        title: "谁距离近就归谁",
+        desc: "这是常见误区。距离近不等于领土归属。",
+        type: "trap"
+      },
+      {
+        id: "slogan",
+        title: "态度强硬即可，不必展开证据",
+        desc: "正式发布会需要事实和证据支撑，不能只靠态度。",
+        type: "trap"
+      },
+      {
+        id: "fishing-alone",
+        title: "只要渔民去过，就能单独证明主权",
+        desc: "民间活动不能孤立承担完整证明，需要与官方活动和管辖证据合用。",
+        type: "trap"
+      },
+      {
+        id: "state-licensed-fishing",
+        title: "依法许可与国家统一管理",
+        desc: "相关海域作业需要依法办理捕捞许可并遵守国家海域管理和渔业生产规定。",
+        type: "correct"
+      },
+      {
+        id: "fishing-sovereign-control",
+        title: "渔业活动体现现实管辖",
+        desc: "作业区域和生产规范由国家统一划定约束，体现国家层面的海域管辖。",
+        type: "correct"
+      },
+      {
+        id: "multi-evidence-chain",
+        title: "传统渔业只是多重依据之一",
+        desc: "传统渔业活动要与历史记载、地理界定、国际法理和常态化管辖相互印证。",
+        type: "correct"
+      },
+      {
+        id: "map-color",
+        title: "地图颜色相近即可说明归属",
+        desc: "课堂示意图只能辅助理解，不能替代规范证据。",
+        type: "trap"
+      },
+      {
+        id: "emotion",
+        title: "记者提问尖锐，所以回答也要情绪化",
+        desc: "外交场景更需要克制、清晰、基于事实的回应。",
+        type: "trap"
+      }
+    ];
+
+    const questions = [
+      {
+        id: "ap",
+        reporter: "美联社记者",
+        short: "美联社",
+        x: 26,
+        y: 32,
+        size: 110,
+        parallax: 0,
+        question: "黄岩岛距离菲律宾更近，为什么黄岩岛不属于菲方？（提示词：距离远近不能判定领土主权；可用阿拉斯加类比例证；回答要回到开发、管控与活动痕迹。）",
+        required: ["distance-not-rule", "alaska-example", "territory-practice"],
+        hints: ["distance-not-rule", "alaska-example", "territory-practice"],
+        optionIds: ["distance-not-rule", "alaska-example", "territory-practice", "near-wins"],
+        model: "首先必须明确，领土归属从来都和地理距离远近没有任何关系，不能用距离远近判定领土主权。如果只从地理距离上来衡量岛屿的主权归属的话，阿拉斯加离俄罗斯更近，阿拉斯加理应属于俄罗斯而非美国！显然，阿拉斯加属于美国。依照国际通用领土判定惯例，优先依据最早开发、长期实际管控、世代民众活动痕迹确定主权，而非单纯的地理位置远近。临近只能说明地缘区位相近，绝不能等同于拥有领土主权。",
+        teacherTip: "本题要先拆解记者设问中的误区：距离近不是领土归属规则。再用阿拉斯加类比例证说明，并回到最早开发、长期管控和活动痕迹。"
+      },
+      {
+        id: "foreign",
+        reporter: "法新社记者",
+        short: "法新社",
+        x: 59,
+        y: 32,
+        size: 110,
+        parallax: 0,
+        question: "中方一直提出，中国渔民在黄岩岛海域拥有长达两千多年的传统捕鱼历史，以此作为主权依据。这只是普通渔民自发的民间生产行为，并不具备官方属性，请问单纯的民间捕鱼活动，真的能够作为证明国家领土主权的有效依据吗？（提示词：渔业活动是否完全自发；国家许可与统一管理；传统渔业只是多重依据之一。）",
+        required: ["state-licensed-fishing", "fishing-sovereign-control", "multi-evidence-chain"],
+        hints: ["state-licensed-fishing", "fishing-sovereign-control", "multi-evidence-chain"],
+        optionIds: ["state-licensed-fishing", "fishing-sovereign-control", "multi-evidence-chain", "fishing-alone"],
+        model: "首先，渔民在黄岩岛海域开展渔业活动，从来都不是无组织的个人自发行为。如今想要在此海域作业，必须依法办理我国发放的渔业捕捞许可证，严格遵守国家制定的海域管理与渔业生产相关规定，作业区域、生产规范全都由国家统一划定约束。这充分说明，这类渔业生产活动，本质上是依托国家主权开展的国家层面管控行为，是我国行使海域管辖权最直接的现实体现。其次，传统渔业活动只是我方众多依据中的一项。刚刚我方发言人论证黄岩岛主权归属也提到了，还有详实历史记载、权威地理界定、完备国际法理以及常态化主权管辖等多重坚实依据，是多方证据相互印证，足以充分证实黄岩岛是中国毋庸置疑的固有领土。",
+        teacherTip: "本题的亮点是不能简单说“渔民去过就是主权”，而要引导学生说出“民间线索 + 官方证据 + 持续管辖”的组合逻辑。"
+      }
+    ];
+
+    const fillerJournalists = [];
+
+    const state = {
+      look: 0,
+      activeQuestion: null,
+      selectedEvidence: new Set(),
+      wrongEvidence: new Set(),
+      attempts: {},
+      completed: new Set(),
+      phase: "scene",
+      lastScores: null,
+      hinting: false
+    };
+
+    const $ = (selector) => document.querySelector(selector);
+    const stage = $("#stage");
+    const app = $("#app");
+    const statusText = $("#statusText");
+    const evidenceList = $("#evidenceList");
+    const cardPanel = $("#cardPanel");
+    const summary = $("#summary");
+    const answerModal = $("#answerModal");
+    const teacherPanel = $("#teacherPanel");
+    const teacherMaterials = $("#teacherMaterials");
+    const intro = $("#intro");
+    const flash = $("#flash");
+
+    let audioCtx = null;
+    let ringTimer = null;
+    let ringStep = 0;
+
+    function playTone(freq, dur, vol, wave = "sine") {
+      audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      const now = audioCtx.currentTime;
+      osc.type = wave;
+      osc.frequency.setValueAtTime(freq, now);
+      gain.gain.setValueAtTime(vol, now);
+      gain.gain.exponentialRampToValueAtTime(.001, now + dur);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + dur);
+    }
+
+    function sound(type) {
+      if (!settings.sound) return;
+      try {
+        const tones = {
+          click: [540, .045, .035],
+          ask: [350, .08, .045],
+          ok: [740, .09, .05],
+          warn: [210, .12, .055],
+          shutter: [980, .035, .06],
+          connect: [820, .11, .06]
+        };
+        const [freq, dur, vol] = tones[type] || tones.click;
+        playTone(freq, dur, vol);
+      } catch (err) {}
+    }
+
+    function startRingtone() {
+      if (!settings.sound || ringTimer) return;
+      const ring = () => {
+        try {
+          const pair = ringStep % 2 === 0 ? [660, 820] : [590, 760];
+          playTone(pair[0], .16, .035, "triangle");
+          setTimeout(() => playTone(pair[1], .18, .032, "triangle"), 210);
+          ringStep += 1;
+        } catch (err) {}
+      };
+      ring();
+      ringTimer = setInterval(ring, 1150);
+    }
+
+    function stopRingtone() {
+      if (ringTimer) clearInterval(ringTimer);
+      ringTimer = null;
+    }
+
+    function renderJournalists() {
+      const wrap = $("#journalists");
+      wrap.innerHTML = "";
+      const all = [
+        ...questions.map((q) => ({ ...q, raised: true }))
+      ];
+
+      all.forEach((j) => {
+        const el = document.createElement("button");
+        el.className = `journalist${j.raised ? " raised" : ""}`;
+        el.dataset.id = j.id;
+        el.style.setProperty("--x", j.x);
+        el.style.setProperty("--y", j.y);
+        el.style.setProperty("--size", j.size);
+        el.style.setProperty("--depth", String(Math.max(.74, Math.min(1.08, j.size / 120))));
+        el.style.setProperty("--parallax", j.parallax);
+        el.setAttribute("aria-label", j.filler ? "现场记者" : `${j.reporter}，点击提问`);
+        el.setAttribute("aria-disabled", j.filler ? "true" : "false");
+        el.innerHTML = `
+          <span class="badge">${j.short || "记者席"}</span>
+          <span class="click-tip">点击提问</span>
+          <span class="arm"></span>
+          <span class="head"></span>
+          <span class="body"></span>
+          <span class="device"></span>
+          <span class="desk"></span>
+        `;
+        if (!j.filler) {
+          el.addEventListener("click", () => tryOpenQuestion(j.id));
+        }
+        wrap.appendChild(el);
+      });
+      updateLook(0);
+    }
+
+    function updateLook(raw) {
+      state.look = Math.max(-1, Math.min(1, raw));
+      const px = state.look * -72;
+      app.style.setProperty("--look", `${px}px`);
+      document.querySelectorAll(".journalist").forEach((el) => {
+        const id = el.dataset.id;
+        const q = questions.find((item) => item.id === id);
+        if (!q) return;
+        const apparent = q.x;
+        const near = apparent > 18 && apparent < 70;
+        el.classList.toggle("near", near && !state.completed.has(id));
+        el.classList.toggle("done", state.completed.has(id));
+      });
+    }
+
+    stage.addEventListener("mousemove", (event) => {
+      const rect = stage.getBoundingClientRect();
+      const ratio = (event.clientX - rect.left) / rect.width;
+      updateLook((ratio - .5) * 2);
+    });
+
+    function tryOpenQuestion(id) {
+      const el = document.querySelector(`.journalist[data-id="${id}"]`);
+      if (!el || !el.classList.contains("near") || state.completed.has(id)) return;
+      const q = questions.find((item) => item.id === id);
+      state.activeQuestion = q;
+      state.selectedEvidence = new Set();
+      state.wrongEvidence = new Set();
+      state.hinting = false;
+      state.phase = "evidence";
+      statusText.textContent = `${q.reporter}正在提问。请先从问题上方选择 ${q.required.length} 条证据。`;
+      sound("ask");
+      flash.classList.remove("on");
+      void flash.offsetWidth;
+      flash.classList.add("on");
+      renderEvidence();
+      renderQuestion();
+    }
+
+    function renderEvidence() {
+      evidenceList.innerHTML = "";
+    }
+
+    function activeEvidenceIds(q) {
+      if (!q) return [];
+      return q.optionIds || Array.from(new Set([...q.hints, "near-wins"]));
+    }
+
+    function evidenceCardsHtml(q) {
+      return `
+        <div class="evidence-strip" aria-label="本题可选证据">
+          <div class="evidence-strip-title">本题可选证据：请从 ${activeEvidenceIds(q).length} 条中选择 ${q.required.length} 条组成证据链</div>
+          ${activeEvidenceIds(q).map((id) => {
+            const e = evidenceBank.find((item) => item.id === id);
+            if (!e) return "";
+            const classes = [
+              "evidence",
+              state.selectedEvidence.has(e.id) ? "selected" : "",
+              state.wrongEvidence.has(e.id) ? "wrong" : "",
+              state.hinting && q.hints.includes(e.id) ? "hinted" : ""
+            ].filter(Boolean).join(" ");
+            return `<button class="${classes}" data-id="${e.id}" onclick="toggleEvidence('${e.id}')"><strong>${e.title}</strong><span>${e.desc}</span></button>`;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    function toggleEvidence(id) {
+      if (!state.activeQuestion || state.phase !== "evidence") return;
+      state.wrongEvidence.delete(id);
+      if (state.selectedEvidence.has(id)) {
+        state.selectedEvidence.delete(id);
+      } else {
+        if (state.selectedEvidence.size >= state.activeQuestion.required.length) {
+          statusText.textContent = `本题最多选择 ${state.activeQuestion.required.length} 条证据。请先取消一条，再补充更有力的依据。`;
+          sound("warn");
+          return;
+        }
+        state.selectedEvidence.add(id);
+      }
+      sound("click");
+      renderEvidence();
+      renderQuestion();
+    }
+
+    function selectedQuality(q) {
+      const selected = [...state.selectedEvidence];
+      const wrong = selected.filter((id) => !q.required.includes(id));
+      const hit = q.required.filter((id) => state.selectedEvidence.has(id)).length;
+      const missing = q.required.filter((id) => !state.selectedEvidence.has(id));
+      return { selected, wrong, missing, hit, complete: wrong.length === 0 && hit === q.required.length && selected.length === q.required.length };
+    }
+
+    function confirmEvidence() {
+      const q = state.activeQuestion;
+      const quality = selectedQuality(q);
+      const attempts = state.attempts[q.id] || 0;
+      state.wrongEvidence = new Set(quality.wrong);
+      if (quality.complete) {
+        state.phase = "feedback";
+        state.lastScores = { evidence: 3, geography: 3, expression: 3 };
+        statusText.textContent = "证据链完整。请学生按照标准回应完成发布会发言。";
+        sound("ok");
+        renderQuestion();
+        return;
+      }
+      state.attempts[q.id] = attempts + 1;
+      sound("warn");
+      state.hinting = true;
+      const wrongNames = quality.wrong.map((id) => evidenceBank.find((e) => e.id === id)?.title).filter(Boolean);
+      const missingCount = Math.max(0, q.required.length - quality.hit);
+      const selectedCount = quality.selected.length;
+      let notice = `本题需要 ${q.required.length} 条正确证据。`;
+      if (wrongNames.length) {
+        notice += ` 选错证据：${wrongNames.join("、")}，请取消后重新选择。`;
+      }
+      if (missingCount > 0) {
+        notice += ` 还差 ${missingCount} 条关键证据。`;
+      }
+      if (selectedCount < q.required.length) {
+        notice += ` 当前只选择了 ${selectedCount} 条。`;
+      }
+      statusText.textContent = notice;
+      renderQuestion(notice);
+    }
+
+    function finishQuestion() {
+      if (!state.activeQuestion) return;
+      showSpeakerAnswer(state.activeQuestion);
+    }
+
+    function showSpeakerAnswer(q) {
+      sound("ok");
+      statusText.textContent = "发言人正在作答。请学生朗读中间大框中的标准回应。";
+      answerModal.classList.remove("hidden");
+      answerModal.innerHTML = `
+        <div class="modal speaker-modal">
+          <span class="speaker-tag">发言人回答</span>
+          <h2>${q.reporter}提问回应</h2>
+          <div class="speaker-answer">${q.model}</div>
+          <div class="actions">
+            <button class="btn primary" onclick="completeSpeakerAnswer()">回答完毕</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function completeSpeakerAnswer() {
+      if (!state.activeQuestion) {
+        answerModal.classList.add("hidden");
+        return;
+      }
+      state.completed.add(state.activeQuestion.id);
+      state.activeQuestion = null;
+      state.selectedEvidence = new Set();
+      state.wrongEvidence = new Set();
+      state.hinting = false;
+      state.phase = "scene";
+      answerModal.classList.add("hidden");
+      cardPanel.classList.add("hidden");
+      renderEvidence();
+      renderJournalists();
+      if (state.completed.size === questions.length) {
+        showSummary();
+      } else {
+        statusText.textContent = "请第二名学生上台，继续环顾会场，点击下一位举手记者。";
+      }
+    }
+
+    function resetQuestion() {
+      if (!state.activeQuestion) return;
+      state.selectedEvidence = new Set();
+      state.wrongEvidence = new Set();
+      state.phase = "evidence";
+      state.attempts[state.activeQuestion.id] = 0;
+      state.hinting = false;
+      statusText.textContent = `本题已重置。请重新选择 ${state.activeQuestion.required.length} 条证据。`;
+      renderEvidence();
+      renderQuestion();
+    }
+
+    function backToScene() {
+      cardPanel.classList.add("hidden");
+      state.phase = "scene";
+      statusText.textContent = "已返回现场。再次点击举手记者可继续。";
+    }
+
+    function renderQuestion(notice = "") {
+      const q = state.activeQuestion;
+      if (!q) return;
+      cardPanel.classList.remove("hidden");
+      const evidenceNames = [...state.selectedEvidence].map((id) => evidenceBank.find((e) => e.id === id)?.title).filter(Boolean);
+      const selectedText = evidenceNames.length ? evidenceNames.join("、") : "尚未选择";
+      const evidenceStrip = state.phase === "evidence" ? evidenceCardsHtml(q) : "";
+      const feedbackBlock = state.phase === "feedback" ? `
+        <div class="notice">证据链已确认。点击“完成本题”后，中间会弹出发言人回答大框，学生按教师原版答案完成正式回应。</div>
+        <div class="feedback">
+          ${metric("证据完整度", state.lastScores.evidence)}
+          ${metric("地理解释力", state.lastScores.geography)}
+          ${metric("表达稳健度", state.lastScores.expression)}
+        </div>
+      ` : "";
+      cardPanel.innerHTML = `
+        ${evidenceStrip}
+        <div class="question-head">
+          <h2>${q.reporter}</h2>
+          <small>${state.phase === "evidence" ? "证据选择" : "标准回应"}</small>
+        </div>
+        <p class="question-text">${q.question}</p>
+        <div class="panel-grid">
+          <div>
+            <h2>已选证据</h2>
+            <p style="color:var(--muted); line-height:1.5; margin:0;">${selectedText}</p>
+            ${notice ? `<div class="notice">${notice}</div>` : ""}
+          </div>
+          <div>
+            ${state.phase === "evidence" ? `<p style="margin:0; color:var(--muted); line-height:1.5;">请从问题上方选择 ${q.required.length} 条材料，再确认证据链。错误证据会被标红，取消后可重新选择。</p>` : ""}
+            ${feedbackBlock}
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn ghost" onclick="backToScene()">返回现场</button>
+          <button class="btn ghost" onclick="resetQuestion()">重置本题</button>
+          ${state.phase === "evidence" ? `<button class="btn primary" onclick="confirmEvidence()">确认证据链</button>` : ""}
+          ${state.phase === "feedback" ? `<button class="btn primary" onclick="finishQuestion()">完成本题</button>` : ""}
+        </div>
+      `;
+    }
+
+    function metric(label, score) {
+      return `<div class="metric"><label><span>${label}</span><span>${score}/3</span></label><div class="bar" style="--score:${score}"><span></span></div></div>`;
+    }
+
+    function showSummary() {
+      sound("ok");
+      statusText.textContent = "发布会模拟完成。";
+      summary.classList.remove("hidden");
+      summary.innerHTML = `
+        <div class="modal">
+          <h2>发布会总结</h2>
+          <p>两位发言人已经完成本场记者会回应。以下为课堂最终成果。</p>
+          <div class="summary-cards">
+            <div class="summary-card"><strong>回应空间误区</strong><p>我们说明了“距离近”不能直接决定领土归属，必须回到历史和法理证据。</p></div>
+            <div class="summary-card"><strong>形成证据链</strong><p>我们把长期发现利用、官方测量、命名确认与持续管辖联系起来，而不是孤立使用单一材料。</p></div>
+            <div class="summary-card"><strong>完成地理解释</strong><p>我们能用条约界限、自然地理分界和相关海域空间关系，辅助解释黄岩岛议题。</p></div>
+          </div>
+          <div class="model-answer"><strong>收束发言：</strong>中方在黄岩岛问题上的立场建立在历史事实、法理依据和持续管辖基础上。课堂模拟中，我们不是用情绪回应争议，而是用材料组织证据链，用地理视角解释空间关系，并以克制、清晰、基于事实的方式完成正式表达。</div>
+          <div class="actions">
+            <button class="btn ghost" onclick="closeSummary()">返回现场</button>
+            <button class="btn primary" onclick="resetAll()">重新开始</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function closeSummary() {
+      summary.classList.add("hidden");
+    }
+
+    function resetAll() {
+      state.activeQuestion = null;
+      state.selectedEvidence = new Set();
+      state.wrongEvidence = new Set();
+      state.completed = new Set();
+      state.attempts = {};
+      state.hinting = false;
+      state.phase = "scene";
+      cardPanel.classList.add("hidden");
+      summary.classList.add("hidden");
+      teacherPanel.classList.add("hidden");
+      answerModal.classList.add("hidden");
+      statusText.textContent = "移动鼠标环顾会场，点击进入视野的举手记者。";
+      renderJournalists();
+      renderEvidence();
+      sound("click");
+    }
+
+    function openTeacherPanel() {
+      teacherPanel.classList.remove("hidden");
+      const q = state.activeQuestion;
+      teacherPanel.innerHTML = `
+        <div class="modal">
+          <h2>教师资料与演示控制</h2>
+          <div class="teacher-grid">
+            <div class="teacher-box">
+              <h3>现场控制</h3>
+              <p>当前题目：${q ? q.reporter : "未打开题目"}</p>
+              <div class="actions" style="justify-content:flex-start;">
+                <button class="btn" onclick="teacherShowHint()">显示本题提示</button>
+                <button class="btn" onclick="teacherShowModel()">显示标准回应</button>
+                <button class="btn" onclick="resetAll()">重置全场</button>
+              </div>
+              <div class="actions" style="justify-content:flex-start;">
+                <button class="btn" onclick="toggleIntro()">开场动画：${settings.showIntro ? "开" : "关"}</button>
+                <button class="btn" onclick="toggleSound()">音效：${settings.sound ? "开" : "关"}</button>
+              </div>
+            </div>
+            <div class="teacher-box">
+              <h3>课堂口径</h3>
+              <p>本互动训练的是证据链组织，不是让学生进行情绪化辩论。请引导学生使用“事实、材料、地理解释、稳健表达”的顺序回应。</p>
+              <p>地图只作课堂示意，不作为完整边界图使用。</p>
+            </div>
+            <div class="teacher-box">
+              <h3>材料参考</h3>
+              <p>可结合东汉时期关于南海的早期记载、元代官方测量线索、渔民更路簿所体现的长期利用、近代官方命名确认、相关国际条约界限，以及大陆架自然延伸和马尼拉海沟等地理材料讲解。</p>
+            </div>
+            <div class="teacher-box">
+              <h3>降级方案</h3>
+              <p>如果学生操作不熟，教师可代为移动鼠标，学生只负责证据选择与朗读。若现场音响不可用，关闭音效不影响流程。</p>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn primary" onclick="closeTeacherPanel()">关闭</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function closeTeacherPanel() {
+      teacherPanel.classList.add("hidden");
+    }
+
+    function teacherShowHint() {
+      closeTeacherPanel();
+      if (!state.activeQuestion) {
+        statusText.textContent = "请先点击一名举手记者，再显示本题提示。";
+        return;
+      }
+      state.activeQuestion.hints.forEach((id) => {
+        const el = document.querySelector(`.evidence[data-id="${id}"]`);
+        if (el) el.classList.add("hinted");
+      });
+      statusText.textContent = state.activeQuestion.teacherTip;
+    }
+
+    function teacherShowModel() {
+      closeTeacherPanel();
+      if (!state.activeQuestion) {
+        statusText.textContent = "请先点击一名举手记者，再显示标准回应。";
+        return;
+      }
+      state.phase = "feedback";
+      state.lastScores = { evidence: 3, geography: 3, expression: 3 };
+      renderQuestion();
+    }
+
+    function toggleIntro() {
+      settings.showIntro = !settings.showIntro;
+      localStorage.setItem("briefing.callIntro", String(settings.showIntro));
+      openTeacherPanel();
+    }
+
+    function toggleSound() {
+      settings.sound = !settings.sound;
+      localStorage.setItem("briefing.sound", String(settings.sound));
+      openTeacherPanel();
+    }
+
+    function toggleTeacherMaterials() {
+      teacherMaterials.classList.toggle("hidden");
+    }
+
+    let holdTimer = null;
+    let holdStart = 0;
+    const hotspot = $("#teacherHotspot");
+    const holdRing = $("#holdRing");
+    const holdSpan = $("#holdRing span");
+
+    function startHold() {
+      holdStart = performance.now();
+      holdRing.classList.add("active");
+      const tick = () => {
+        const progress = Math.min(1, (performance.now() - holdStart) / 2000);
+        holdSpan.style.setProperty("--hold", `${progress * 100}%`);
+        if (progress >= 1) {
+          cancelHold();
+          openTeacherPanel();
+          sound("ok");
+        } else {
+          holdTimer = requestAnimationFrame(tick);
+        }
+      };
+      holdTimer = requestAnimationFrame(tick);
+    }
+
+    function cancelHold() {
+      if (holdTimer) cancelAnimationFrame(holdTimer);
+      holdTimer = null;
+      holdRing.classList.remove("active");
+      holdSpan.style.setProperty("--hold", "0%");
+    }
+
+    hotspot.addEventListener("pointerdown", startHold);
+    hotspot.addEventListener("pointerup", cancelHold);
+    hotspot.addEventListener("pointerleave", cancelHold);
+
+    function renderIntro() {
+      if (!settings.showIntro) {
+        intro.classList.add("hidden");
+        return;
+      }
+      intro.classList.remove("hidden");
+      intro.classList.remove("connecting");
+      intro.innerHTML = `
+        <div class="modal call-modal">
+          <div>
+            <div class="call-status"><span></span>正在连接发言现场</div>
+            <div class="call-orb">
+              <div class="call-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.3 19.3 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.5c.9.3 1.9.6 2.9.7A2 2 0 0 1 22 16.9z"></path>
+                </svg>
+              </div>
+            </div>
+            <h2>连接外交部例行记者会现场</h2>
+            <p>等待现场信号接入。请教师提示学生：“让我们来连接一下发言现场。”</p>
+          </div>
+          <div class="actions" style="justify-content:center;">
+            <button class="connect-btn" onclick="answerCall()">接通</button>
+          </div>
+        </div>
+      `;
+      startRingtone();
+    }
+
+    function answerCall() {
+      stopRingtone();
+      intro.classList.add("connecting");
+      sound("connect");
+      setTimeout(() => sound("shutter"), 120);
+      setTimeout(() => {
+        intro.classList.add("hidden");
+        intro.classList.remove("connecting");
+      }, 1050);
+    }
+
+    window.confirmEvidence = confirmEvidence;
+    window.finishQuestion = finishQuestion;
+    window.completeSpeakerAnswer = completeSpeakerAnswer;
+    window.resetQuestion = resetQuestion;
+    window.backToScene = backToScene;
+    window.closeSummary = closeSummary;
+    window.resetAll = resetAll;
+    window.closeTeacherPanel = closeTeacherPanel;
+    window.teacherShowHint = teacherShowHint;
+    window.teacherShowModel = teacherShowModel;
+    window.toggleIntro = toggleIntro;
+    window.toggleSound = toggleSound;
+    window.toggleTeacherMaterials = toggleTeacherMaterials;
+    window.answerCall = answerCall;
+
+    renderJournalists();
+    renderEvidence();
+    renderIntro();
+  </script>
+</body>
+</html>
