@@ -1192,10 +1192,25 @@
     let audioCtx = null;
     let ringTimer = null;
     let ringStep = 0;
+    let audioUnlocked = false;
+    let answeringCall = false;
+
+    async function unlockAudio() {
+      if (!settings.sound) return false;
+      audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === "suspended") {
+        try {
+          await audioCtx.resume();
+        } catch (err) {
+          return false;
+        }
+      }
+      audioUnlocked = true;
+      return true;
+    }
 
     function playTone(freq, dur, vol, wave = "sine") {
       audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       const now = audioCtx.currentTime;
@@ -1236,6 +1251,25 @@
       };
       ring();
       ringTimer = setInterval(ring, 1150);
+    }
+
+    async function unlockIntroAudio() {
+      if (intro.classList.contains("hidden") || answeringCall) return;
+      const ok = await unlockAudio();
+      if (ok) startRingtone();
+    }
+
+    function playPhoneRingBurst() {
+      if (!settings.sound) return;
+      try {
+        const pattern = [
+          [0, 660], [180, 820],
+          [520, 660], [700, 820]
+        ];
+        pattern.forEach(([delay, freq]) => {
+          setTimeout(() => playTone(freq, .18, .07, "triangle"), delay);
+        });
+      } catch (err) {}
     }
 
     function stopRingtone() {
@@ -1700,18 +1734,22 @@
           </div>
         </div>
       `;
-      startRingtone();
     }
 
-    function answerCall() {
+    async function answerCall() {
+      if (answeringCall) return;
+      answeringCall = true;
+      await unlockAudio();
       stopRingtone();
+      playPhoneRingBurst();
       intro.classList.add("connecting");
-      sound("connect");
-      setTimeout(() => sound("shutter"), 120);
+      setTimeout(() => sound("connect"), 860);
+      setTimeout(() => sound("shutter"), 1020);
       setTimeout(() => {
         intro.classList.add("hidden");
         intro.classList.remove("connecting");
-      }, 1050);
+        answeringCall = false;
+      }, 1550);
     }
 
     window.confirmEvidence = confirmEvidence;
@@ -1732,6 +1770,9 @@
     renderJournalists();
     renderEvidence();
     renderIntro();
+    ["pointermove", "pointerdown", "keydown", "touchstart"].forEach((eventName) => {
+      document.addEventListener(eventName, unlockIntroAudio, { passive: true });
+    });
   </script>
 </body>
 </html>
