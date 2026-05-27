@@ -193,16 +193,16 @@
       white-space: nowrap;
     }
 
-    .journalist.raised.near .badge,
+    .questions-open .journalist.raised.near .badge,
     .journalist.done .badge {
       opacity: 1;
     }
 
-    .journalist.raised.near {
+    .questions-open .journalist.raised.near {
       filter: drop-shadow(0 0 16px rgba(215, 180, 106, .85));
     }
 
-    .journalist.raised.near::before {
+    .questions-open .journalist.raised.near::before {
       content: "";
       position: absolute;
       left: 50%;
@@ -219,6 +219,62 @@
     .journalist.done {
       opacity: .58;
       filter: grayscale(.25);
+    }
+
+    .question-markers {
+      position: absolute;
+      inset: 0;
+      z-index: 36;
+      pointer-events: none;
+    }
+
+    .question-marker {
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 34px;
+      padding: 7px 11px;
+      border: 1px solid rgba(255, 232, 165, .8);
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255, 222, 138, .96), rgba(197, 147, 54, .94));
+      color: #151006;
+      font-size: 14px;
+      font-weight: 900;
+      white-space: nowrap;
+      box-shadow: 0 10px 24px rgba(0,0,0,.34), 0 0 0 5px rgba(215, 180, 106, .16);
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, -100%);
+      transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+    }
+
+    .question-marker::before {
+      content: "?";
+      display: grid;
+      place-items: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(11, 17, 24, .9);
+      color: #ffe6a8;
+      font-size: 13px;
+      line-height: 1;
+    }
+
+    .questions-open .question-marker.ready {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate(-50%, -100%) translateY(-5px) scale(1.05);
+      box-shadow: 0 14px 28px rgba(0,0,0,.38), 0 0 0 7px rgba(215, 180, 106, .22);
+    }
+
+    .question-marker.done {
+      opacity: 0;
+      pointer-events: none;
     }
 
     .click-tip {
@@ -238,7 +294,60 @@
     }
 
     .journalist.raised.near:not(.done) .click-tip {
-      opacity: 1;
+      opacity: 0;
+    }
+
+    .reporter-bubble {
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: 2;
+      width: min(390px, 34vw);
+      min-width: 300px;
+      padding: 14px 16px;
+      border: 1px solid rgba(226, 238, 255, .34);
+      border-radius: 14px;
+      background: rgba(8, 18, 30, .96);
+      color: #edf6ff;
+      font-size: 18px;
+      font-weight: 850;
+      line-height: 1.42;
+      text-align: left;
+      box-shadow: 0 20px 42px rgba(0,0,0,.42);
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, -100%) translateY(-12px) scale(.86);
+    }
+
+    .reporter-bubble::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -10px;
+      width: 18px;
+      height: 18px;
+      background: rgba(8, 18, 30, .96);
+      border-right: 1px solid rgba(226, 238, 255, .24);
+      border-bottom: 1px solid rgba(226, 238, 255, .24);
+      transform: translateX(-50%) rotate(45deg);
+    }
+
+    .reporter-bubble.asking {
+      animation: reporterBubbleIn .42s cubic-bezier(.2, .9, .2, 1) forwards;
+    }
+
+    .reporter-bubble.bubble-out {
+      animation: reporterBubbleToCenter .58s cubic-bezier(.2, .85, .2, 1) forwards;
+    }
+
+    @keyframes reporterBubbleIn {
+      0% { opacity: 0; transform: translate(-50%, -100%) translateY(4px) scale(.82); }
+      100% { opacity: 1; transform: translate(-50%, -100%) translateY(-12px) scale(1); }
+    }
+
+    @keyframes reporterBubbleToCenter {
+      0% { opacity: 1; transform: translate(-50%, -100%) translateY(-12px) scale(1); filter: blur(0); }
+      100% { opacity: 0; transform: translate(-50%, -100%) translateY(-18vh) scale(1.9); filter: blur(4px); }
     }
 
     .podium {
@@ -403,7 +512,7 @@
       line-height: 1.56;
     }
 
-    .side-screen h2, .card-panel h2 {
+    .side-screen h2 {
       margin: 0 0 10px;
       font-size: 17px;
     }
@@ -457,88 +566,31 @@
     .map-label.a { left: 35%; top: 28%; }
     .map-label.b { right: 9%; bottom: 20%; }
 
-    .evidence-list {
-      display: grid;
-      gap: 8px;
-    }
-
-    .evidence {
-      width: 100%;
-      min-height: 54px;
-      padding: 9px 10px;
-      border: 1px solid rgba(219, 233, 250, .18);
-      border-radius: 5px;
-      background: rgba(255,255,255,.055);
-      text-align: left;
-      line-height: 1.35;
-    }
-
-    .evidence strong {
-      display: block;
-      margin-bottom: 2px;
-      color: #f2f7ff;
-      font-size: 14px;
-    }
-
-    .evidence span {
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .evidence.selected {
-      border-color: rgba(215, 180, 106, .88);
-      background: rgba(215, 180, 106, .16);
-      box-shadow: inset 0 0 0 1px rgba(215, 180, 106, .22);
-    }
-
-    .evidence.hinted {
-      border-color: rgba(109, 214, 165, .86);
-      background: rgba(109, 214, 165, .16);
-    }
-
-    .evidence.wrong {
-      border-color: rgba(255, 110, 110, .92);
-      background: rgba(160, 38, 38, .22);
-      box-shadow: inset 0 0 0 1px rgba(255, 110, 110, .22);
-    }
-
-    .evidence.wrong strong {
-      color: #ffd1d1;
-    }
-
     .card-panel {
       position: absolute;
-      left: 24px;
-      right: 24px;
-      bottom: 24px;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
       z-index: 40;
-      min-height: 188px;
-      max-height: 64vh;
-      padding: 16px;
+      width: min(1080px, calc(100vw - 48px));
+      max-height: 78vh;
+      padding: 26px;
       border: 1px solid rgba(221, 236, 255, .22);
       border-radius: 7px;
-      background: var(--panel);
+      background:
+        linear-gradient(180deg, rgba(11, 25, 42, .96), rgba(8, 16, 29, .96));
       backdrop-filter: blur(12px);
       box-shadow: 0 22px 54px rgba(0,0,0,.46);
       overflow: auto;
     }
 
-    .evidence-strip {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-      gap: 8px;
-      margin: 0 0 12px;
-      padding: 10px;
-      border: 1px solid rgba(215, 180, 106, .18);
-      border-radius: 6px;
-      background: rgba(215, 180, 106, .055);
+    .card-panel.pop-in {
+      animation: centralQuestionIn .42s cubic-bezier(.2, .85, .2, 1) both;
     }
 
-    .evidence-strip-title {
-      grid-column: 1 / -1;
-      color: #f4d88f;
-      font-size: 14px;
-      font-weight: 700;
+    @keyframes centralQuestionIn {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.72); filter: blur(8px); }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: blur(0); }
     }
 
     .card-panel.hidden,
@@ -549,35 +601,63 @@
       display: none;
     }
 
-    .question-head {
+    .question-kicker {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 10px;
-    }
-
-    .question-head small {
+      margin: -2px 0 16px;
       color: var(--gold);
-      font-size: 14px;
+      font-size: 22px;
+      font-weight: 800;
     }
 
-    .question-text {
-      margin: 0 0 13px;
-      color: #edf5ff;
+    .question-kicker small {
+      color: var(--muted);
       font-size: 18px;
-      line-height: 1.45;
+      font-weight: 600;
+    }
+
+    .card-panel .question-text {
+      margin: 0;
+      padding: 16px 18px;
+      border: 1px solid rgba(221, 236, 255, .18);
+      border-radius: 6px;
+      background: rgba(255,255,255,.055);
+      color: #edf5ff;
+      font-size: clamp(44px, 5.3vw, 70px);
+      line-height: 1.2;
+      font-weight: 900;
+    }
+
+    .card-panel .question-text.long {
+      font-size: clamp(34px, 3.7vw, 52px);
+      line-height: 1.26;
     }
 
     .panel-grid {
       display: grid;
-      grid-template-columns: minmax(260px, .9fr) minmax(390px, 1.4fr);
+      grid-template-columns: 1fr;
       gap: 14px;
     }
 
-    .evidence:hover {
-      border-color: rgba(215, 180, 106, .58);
-      background: rgba(255,255,255,.095);
+    .hint-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .hint-card {
+      min-height: 116px;
+      padding: 18px 20px;
+      border: 1px solid rgba(215, 180, 106, .34);
+      border-radius: 6px;
+      background: rgba(215, 180, 106, .09);
+      color: #f4e7c7;
+      line-height: 1.58;
+      font-size: 17px;
+      font-weight: 700;
     }
 
     .actions {
@@ -754,41 +834,87 @@
       background: rgba(255,255,255,.045);
     }
 
-    .intro .modal {
-      text-align: center;
-      background:
-        radial-gradient(circle at 50% 10%, rgba(69, 143, 216, .22), transparent 44%),
-        rgba(8, 18, 30, .94);
-    }
-
     .call-modal {
-      width: min(620px, 88vw);
-      min-height: 430px;
+      width: min(430px, 90vw);
+      min-height: 620px;
       display: grid;
       place-items: center;
       text-align: center;
+      padding: 18px;
+      border-color: rgba(255,255,255,.16);
+      background:
+        radial-gradient(circle at 50% 0%, rgba(76, 175, 117, .2), transparent 38%),
+        linear-gradient(180deg, #15251f, #07120f 54%, #050b09);
+    }
+
+    .phone-screen {
+      position: relative;
+      width: min(360px, 100%);
+      min-height: 570px;
+      padding: 22px 22px 28px;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 34px;
+      background:
+        radial-gradient(circle at 50% 18%, rgba(64, 184, 121, .22), transparent 40%),
+        linear-gradient(180deg, rgba(18, 43, 34, .96), rgba(6, 16, 13, .98));
+      box-shadow: inset 0 0 0 7px rgba(0,0,0,.24), 0 26px 64px rgba(0,0,0,.42);
+    }
+
+    .phone-notch {
+      width: 92px;
+      height: 25px;
+      margin: 0 auto 36px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.55);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+    }
+
+    .wx-label {
+      color: rgba(221, 246, 232, .76);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .wx-avatar {
+      width: 104px;
+      height: 104px;
+      margin: 22px auto 18px;
+      border-radius: 24px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, rgba(236, 246, 241, .96), rgba(196, 220, 209, .92));
+      color: #18342b;
+      font-size: 42px;
+      font-weight: 900;
+      box-shadow: 0 18px 36px rgba(0,0,0,.28);
     }
 
     .intro h2 {
-      font-size: 34px;
-      margin-bottom: 8px;
+      max-width: 290px;
+      margin: 0 auto 10px;
+      color: #f2fff7;
+      font-size: 29px;
+      line-height: 1.2;
+      letter-spacing: 0;
     }
 
     .intro p {
-      margin: 0 0 18px;
-      color: var(--muted);
+      max-width: 280px;
+      margin: 0 auto 22px;
+      color: rgba(222, 240, 230, .7);
+      line-height: 1.5;
     }
 
     .call-orb {
       position: relative;
-      width: 138px;
-      height: 138px;
-      margin: 10px auto 24px;
+      width: 84px;
+      height: 84px;
+      margin: 24px auto 0;
       border: 1px solid rgba(109, 214, 165, .42);
       border-radius: 50%;
-      display: grid;
+      display: none;
       place-items: center;
-      background: radial-gradient(circle, rgba(109, 214, 165, .24), rgba(27, 79, 72, .28) 58%, rgba(8, 18, 30, .1));
+      background: linear-gradient(180deg, #67df98, #18a85f);
       box-shadow: 0 0 34px rgba(109, 214, 165, .28);
     }
 
@@ -808,18 +934,18 @@
     }
 
     .call-icon {
-      width: 54px;
-      height: 54px;
+      width: 38px;
+      height: 38px;
       display: grid;
       place-items: center;
       filter: drop-shadow(0 6px 12px rgba(0,0,0,.28));
     }
 
     .call-icon svg {
-      width: 54px;
-      height: 54px;
-      stroke: #dfffee;
-      stroke-width: 2.4;
+      width: 38px;
+      height: 38px;
+      stroke: #fff;
+      stroke-width: 2.6;
       fill: none;
       stroke-linecap: round;
       stroke-linejoin: round;
@@ -829,7 +955,7 @@
       display: inline-flex;
       align-items: center;
       gap: 7px;
-      margin: 0 0 10px;
+      margin: 0 0 28px;
       color: #9ee9c8;
       font-size: 15px;
     }
@@ -843,8 +969,8 @@
     }
 
     .connect-btn {
-      min-width: 148px;
-      min-height: 46px;
+      min-width: 230px;
+      min-height: 50px;
       border-radius: 999px;
       background: linear-gradient(180deg, #7ee0ad, #2d9d70);
       color: #04120c;
@@ -852,26 +978,17 @@
       box-shadow: 0 14px 28px rgba(45, 157, 112, .28);
     }
 
-    .ring-btn {
-      min-height: 34px;
-      padding: 6px 12px;
-      border: 1px solid rgba(158, 233, 200, .42);
-      border-radius: 999px;
-      color: #dfffee;
-      background: rgba(109, 214, 165, .1);
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .ring-btn.ringing {
-      color: #07150f;
-      background: rgba(158, 233, 200, .86);
-    }
-
     .ring-help {
-      margin-top: 8px;
+      min-height: 18px;
+      margin-top: 24px;
       color: #9fb2c8;
       font-size: 12px;
+    }
+
+    .intro.dialing .call-orb {
+      display: grid;
+      border-color: rgba(126, 224, 173, .76);
+      box-shadow: 0 0 46px rgba(126, 224, 173, .42);
     }
 
     .intro.connecting {
@@ -986,7 +1103,7 @@
     <div class="topbar">
       <div class="status">
         <h1>外交部例行记者会模拟现场</h1>
-        <p id="statusText">移动鼠标环顾会场，点击进入视野的举手记者。</p>
+        <p id="statusText">已连线发布会现场。请教师点击开始接受记者提问。</p>
       </div>
       <div style="position:relative; pointer-events:auto;">
         <button class="teacher-hotspot" id="teacherHotspot" title="长按 2 秒打开教师资料"></button>
@@ -994,15 +1111,15 @@
       </div>
     </div>
 
-    <button class="material-toggle" id="materialToggle" onclick="toggleTeacherMaterials()">教师材料</button>
+    <button class="material-toggle" id="materialToggle" onclick="startQuestionPhase()">开始接受记者提问</button>
     <aside class="teacher-materials hidden" id="teacherMaterials" aria-label="教师材料">
       <h2>教师材料</h2>
-      <p>本区供教师备课和现场点拨使用，不参与学生证据选择。</p>
+      <p>本区供教师备课和现场点拨使用，不直接向学生展开。</p>
       <h3>课堂主线</h3>
-      <p>真实情境 -> 记者提问 -> 学生筛选证据 -> 发言人回应 -> 教师用证据链收束。</p>
+      <p>真实情境 -> 拨打现场电话 -> 记者提问 -> 学生根据提示现场回应 -> 教师用标准答案收束。</p>
       <h3>材料口径</h3>
       <ul>
-        <li>历史先占与持续管辖：早期认知、长期开发利用、官方测量、命名确认与持续管理共同构成证据链。</li>
+        <li>历史先占与持续管辖：早期认知、长期开发利用、官方测量、命名确认与持续管理共同支撑主权论证。</li>
         <li>条约界限：相关国际条约界定菲律宾领土范围，未将黄岩岛纳入其中。</li>
         <li>自然地理线索：大陆架自然延伸与马尼拉海沟等可作为空间解释材料。</li>
       </ul>
@@ -1013,16 +1130,6 @@
       </div>
     </aside>
 
-    <aside class="side-screen hidden" id="sideScreen" aria-label="证据屏">
-      <h2>现场证据屏</h2>
-      <div class="map-hint" aria-label="课堂示意图">
-        <span class="map-dot one"></span>
-        <span class="map-dot two"></span>
-        <span class="map-label a">争议焦点海域</span>
-        <span class="map-label b">天然分界线索</span>
-      </div>
-      <div class="evidence-list" id="evidenceList"></div>
-    </aside>
 
     <section class="card-panel hidden" id="cardPanel" aria-live="polite"></section>
 
@@ -1034,6 +1141,7 @@
     <section class="stage" id="stage">
       <img class="room" src="assets/briefing-room-seated.png" alt="">
       <div class="journalists" id="journalists"></div>
+      <div class="question-markers" id="questionMarkers" aria-label="记者提问标记"></div>
       <div class="vignette"></div>
       <img class="podium" src="assets/podium-foreground-nomic.png" alt="">
       <div class="flash" id="flash"></div>
@@ -1046,111 +1154,6 @@
       sound: localStorage.getItem("briefing.sound") !== "false"
     };
 
-    const evidenceBank = [
-      {
-        id: "distance-not-rule",
-        title: "距离不能直接决定归属",
-        desc: "空间距离可以帮助理解位置，但不能单独作为领土归属判断标准。",
-        type: "correct"
-      },
-      {
-        id: "treaty-limit",
-        title: "法定领土界线没有包括相关岛礁",
-        desc: "相关条约界定了菲律宾领土范围，西部界限并未纳入该岛礁。",
-        type: "correct"
-      },
-      {
-        id: "history-control",
-        title: "长期发现、利用与持续管辖",
-        desc: "早期认知、长期开发、官方测量、命名和管辖共同构成历史证据链。",
-        type: "correct"
-      },
-      {
-        id: "alaska-example",
-        title: "阿拉斯加类比例证",
-        desc: "若只按距离判定，阿拉斯加离俄罗斯更近却属于美国，说明距离不是主权归属标准。",
-        type: "correct"
-      },
-      {
-        id: "territory-practice",
-        title: "优先看开发、管控与活动痕迹",
-        desc: "领土判定应看最早开发、长期实际管控和世代民众活动痕迹，而非单纯地理位置远近。",
-        type: "correct"
-      },
-      {
-        id: "official-measure",
-        title: "官方测量与治理线索",
-        desc: "历史上的官方实测与管理活动，能补强单纯民间活动的证据不足。",
-        type: "correct"
-      },
-      {
-        id: "naming",
-        title: "近代正式命名与确认",
-        desc: "近代官方定名和行政确认，体现国家层面的持续管理。",
-        type: "correct"
-      },
-      {
-        id: "fishing",
-        title: "长期捕鱼、避风和补给活动",
-        desc: "长期生产生活实践能说明发现和利用，但需要与官方证据共同使用。",
-        type: "correct"
-      },
-      {
-        id: "natural-boundary",
-        title: "天然地理分界线索",
-        desc: "大陆架自然延伸与深海沟等地貌差异，可作为空间解释材料。",
-        type: "correct"
-      },
-      {
-        id: "near-wins",
-        title: "谁距离近就归谁",
-        desc: "这是常见误区。距离近不等于领土归属。",
-        type: "trap"
-      },
-      {
-        id: "slogan",
-        title: "态度强硬即可，不必展开证据",
-        desc: "正式发布会需要事实和证据支撑，不能只靠态度。",
-        type: "trap"
-      },
-      {
-        id: "fishing-alone",
-        title: "只要渔民去过，就能单独证明主权",
-        desc: "民间活动不能孤立承担完整证明，需要与官方活动和管辖证据合用。",
-        type: "trap"
-      },
-      {
-        id: "state-licensed-fishing",
-        title: "依法许可与国家统一管理",
-        desc: "相关海域作业需要依法办理捕捞许可并遵守国家海域管理和渔业生产规定。",
-        type: "correct"
-      },
-      {
-        id: "fishing-sovereign-control",
-        title: "渔业活动体现现实管辖",
-        desc: "作业区域和生产规范由国家统一划定约束，体现国家层面的海域管辖。",
-        type: "correct"
-      },
-      {
-        id: "multi-evidence-chain",
-        title: "传统渔业只是多重依据之一",
-        desc: "传统渔业活动要与历史记载、地理界定、国际法理和常态化管辖相互印证。",
-        type: "correct"
-      },
-      {
-        id: "map-color",
-        title: "地图颜色相近即可说明归属",
-        desc: "课堂示意图只能辅助理解，不能替代规范证据。",
-        type: "trap"
-      },
-      {
-        id: "emotion",
-        title: "记者提问尖锐，所以回答也要情绪化",
-        desc: "外交场景更需要克制、清晰、基于事实的回应。",
-        type: "trap"
-      }
-    ];
-
     const questions = [
       {
         id: "ap",
@@ -1160,11 +1163,12 @@
         y: 32,
         size: 110,
         parallax: 0,
-        question: "黄岩岛距离菲律宾更近，为什么黄岩岛不属于菲方？（提示词：距离远近不能判定领土主权；可用阿拉斯加类比例证；回答要回到开发、管控与活动痕迹。）",
-        required: ["distance-not-rule", "alaska-example", "territory-practice"],
-        hints: ["distance-not-rule", "alaska-example", "territory-practice"],
-        optionIds: ["distance-not-rule", "alaska-example", "territory-practice", "near-wins"],
-        model: "首先必须明确，领土归属从来都和地理距离远近没有任何关系，不能用距离远近判定领土主权。如果只从地理距离上来衡量岛屿的主权归属的话，阿拉斯加离俄罗斯更近，阿拉斯加理应属于俄罗斯而非美国！显然，阿拉斯加属于美国。依照国际通用领土判定惯例，优先依据最早开发、长期实际管控、世代民众活动痕迹确定主权，而非单纯的地理位置远近。临近只能说明地缘区位相近，绝不能等同于拥有领土主权。",
+        question: "黄岩岛距离菲律宾更近，为什么黄岩岛不属于菲方？",
+        promptCards: [
+          "提示：①优先依据最早开发、长期实际管控、世代民众活动痕迹确定主权",
+          "提示：②可举例子说明"
+        ],
+        model: "首先必须明确，领土归属从来都和地理距离远近没有任何关系，不能用距离远近判定领土主权。（+举例子）如果只从地理距离上来衡量岛屿的主权归属的话，阿拉斯加离俄罗斯更近，阿拉斯加理应属于俄罗斯而非美国！显然，阿拉斯加属于美国。依照国际通用领土判定惯例，优先依据最早开发、长期实际管控、世代民众活动痕迹确定主权，而非单纯的地理位置远近。临近只能说明地缘区位相近，绝不能等同于拥有领土主权。",
         teacherTip: "本题要先拆解记者设问中的误区：距离近不是领土归属规则。再用阿拉斯加类比例证说明，并回到最早开发、长期管控和活动痕迹。"
       },
       {
@@ -1175,10 +1179,11 @@
         y: 32,
         size: 110,
         parallax: 0,
-        question: "中方一直提出，中国渔民在黄岩岛海域拥有长达两千多年的传统捕鱼历史，以此作为主权依据。这只是普通渔民自发的民间生产行为，并不具备官方属性，请问单纯的民间捕鱼活动，真的能够作为证明国家领土主权的有效依据吗？（提示词：渔业活动是否完全自发；国家许可与统一管理；传统渔业只是多重依据之一。）",
-        required: ["state-licensed-fishing", "fishing-sovereign-control", "multi-evidence-chain"],
-        hints: ["state-licensed-fishing", "fishing-sovereign-control", "multi-evidence-chain"],
-        optionIds: ["state-licensed-fishing", "fishing-sovereign-control", "multi-evidence-chain", "fishing-alone"],
+        question: "中方一直提出，中国渔民在黄岩岛海域拥有长达两千多年的传统捕鱼历史，以此作为主权依据。这只是普通渔民自发的民间生产行为，并不具备官方属性，请问单纯的民间捕鱼活动，真的能够作为证明国家领土主权的有效依据吗？",
+        promptCards: [
+          "提示：①在海域作业，必须依法办理我国发放的渔业捕捞许可证，作业区域、生产规范全都由国家统一划定约束，不是无组织的个人自发行为。",
+          "提示：②多方证据相互印证"
+        ],
         model: "首先，渔民在黄岩岛海域开展渔业活动，从来都不是无组织的个人自发行为。如今想要在此海域作业，必须依法办理我国发放的渔业捕捞许可证，严格遵守国家制定的海域管理与渔业生产相关规定，作业区域、生产规范全都由国家统一划定约束。这充分说明，这类渔业生产活动，本质上是依托国家主权开展的国家层面管控行为，是我国行使海域管辖权最直接的现实体现。其次，传统渔业活动只是我方众多依据中的一项。刚刚我方发言人论证黄岩岛主权归属也提到了，还有详实历史记载、权威地理界定、完备国际法理以及常态化主权管辖等多重坚实依据，是多方证据相互印证，足以充分证实黄岩岛是中国毋庸置疑的固有领土。",
         teacherTip: "本题的亮点是不能简单说“渔民去过就是主权”，而要引导学生说出“民间线索 + 官方证据 + 持续管辖”的组合逻辑。"
       }
@@ -1189,21 +1194,19 @@
     const state = {
       look: 0,
       activeQuestion: null,
-      selectedEvidence: new Set(),
-      wrongEvidence: new Set(),
+      animatingQuestion: false,
       attempts: {},
       completed: new Set(),
-      phase: "scene",
-      lastScores: null,
-      hinting: false
+      phase: "waiting",
+      acceptingQuestions: false
     };
 
     const $ = (selector) => document.querySelector(selector);
     const stage = $("#stage");
     const app = $("#app");
     const statusText = $("#statusText");
-    const evidenceList = $("#evidenceList");
     const cardPanel = $("#cardPanel");
+    const questionMarkers = $("#questionMarkers");
     const summary = $("#summary");
     const answerModal = $("#answerModal");
     const teacherPanel = $("#teacherPanel");
@@ -1216,6 +1219,8 @@
     let ringStep = 0;
     let audioUnlocked = false;
     let answeringCall = false;
+    let ringtoneAudio = null;
+    let dialTimer = null;
 
     async function unlockAudio() {
       if (!settings.sound) return false;
@@ -1262,26 +1267,12 @@
     }
 
     function startRingtone() {
-      if (!settings.sound || ringTimer) return false;
-      if (audioCtx && audioCtx.state === "suspended") return false;
-      const ring = () => {
-        try {
-          const pair = ringStep % 2 === 0 ? [660, 820] : [590, 760];
-          playTone(pair[0], .16, .035, "triangle");
-          setTimeout(() => playTone(pair[1], .18, .032, "triangle"), 210);
-          ringStep += 1;
-        } catch (err) {}
-      };
-      ring();
-      ringTimer = setInterval(ring, 1150);
-      updateRingUi(true);
-      return true;
+      return playRingtone();
     }
 
     async function unlockIntroAudio() {
       if (intro.classList.contains("hidden") || answeringCall) return;
-      const ok = await unlockAudio();
-      if (ok) startRingtone();
+      updateRingUi(false);
     }
 
     function updateRingUi(active) {
@@ -1290,55 +1281,51 @@
       const status = $("#callStatusText");
       if (btn) {
         btn.classList.toggle("ringing", active);
-        btn.textContent = active ? "铃声播放中" : "播放铃声";
+        btn.textContent = active ? "正在拨打..." : "拨打外交部现场电话";
       }
       if (hint) {
-        hint.textContent = active ? "铃声已播放，点击“接通”进入发布会现场。" : "若浏览器拦截自动播放，请先点这里播放铃声。";
+        hint.textContent = active ? "正在连接外交部例行记者会现场，稍后自动进入。" : "点击后播放电话铃声，约 4 秒后自动进入现场。";
       }
       if (status) {
-        status.textContent = active ? "正在呼叫发言现场" : "正在连接发言现场";
+        status.textContent = active ? "正在呼叫..." : "微信语音通话";
       }
     }
 
     function tryAutoRingtone() {
-      if (!settings.sound || intro.classList.contains("hidden")) return;
-      try {
-        audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === "running") {
-          startRingtone();
-        } else {
-          updateRingUi(false);
-        }
-      } catch (err) {
-        updateRingUi(false);
-      }
+      updateRingUi(false);
     }
 
     async function playIntroRingtone() {
       if (answeringCall) return;
-      const ok = await unlockAudio();
-      if (!ok) return;
-      const started = startRingtone();
-      if (started) playPhoneRingBurst();
-      updateRingUi(true);
+      await playRingtone();
     }
 
-    function playPhoneRingBurst() {
-      if (!settings.sound) return;
+    async function playRingtone() {
+      if (!settings.sound) return false;
       try {
-        const pattern = [
-          [0, 660], [180, 820],
-          [520, 660], [700, 820]
-        ];
-        pattern.forEach(([delay, freq]) => {
-          setTimeout(() => playTone(freq, .18, .07, "triangle"), delay);
-        });
-      } catch (err) {}
+        if (!ringtoneAudio) {
+          ringtoneAudio = new Audio("assets/call-ringtone.mp3");
+          ringtoneAudio.loop = true;
+          ringtoneAudio.volume = .72;
+        }
+        ringtoneAudio.currentTime = 0;
+        await ringtoneAudio.play();
+        updateRingUi(true);
+        return true;
+      } catch (err) {
+      const hint = $("#ringHint");
+      if (hint) hint.textContent = "未能播放铃声。请确认 assets/call-ringtone.mp3 已放入项目。";
+        return false;
+      }
     }
 
     function stopRingtone() {
       if (ringTimer) clearInterval(ringTimer);
       ringTimer = null;
+      if (ringtoneAudio) {
+        ringtoneAudio.pause();
+        ringtoneAudio.currentTime = 0;
+      }
       updateRingUi(false);
     }
 
@@ -1358,11 +1345,10 @@
         el.style.setProperty("--size", j.size);
         el.style.setProperty("--depth", String(Math.max(.74, Math.min(1.08, j.size / 120))));
         el.style.setProperty("--parallax", j.parallax);
-        el.setAttribute("aria-label", j.filler ? "现场记者" : `${j.reporter}，点击提问`);
+        el.setAttribute("aria-label", j.filler ? "现场记者" : `${j.reporter}`);
         el.setAttribute("aria-disabled", j.filler ? "true" : "false");
         el.innerHTML = `
           <span class="badge">${j.short || "记者席"}</span>
-          <span class="click-tip">点击提问</span>
           <span class="arm"></span>
           <span class="head"></span>
           <span class="body"></span>
@@ -1374,7 +1360,51 @@
         }
         wrap.appendChild(el);
       });
+      renderQuestionMarkers();
       updateLook(0);
+    }
+
+    function renderQuestionMarkers() {
+      questionMarkers.innerHTML = "";
+      questions.forEach((q) => {
+        const marker = document.createElement("button");
+        marker.className = "question-marker";
+        marker.dataset.id = q.id;
+        marker.type = "button";
+        marker.textContent = "提问";
+        marker.setAttribute("aria-label", `${q.reporter}，点击提问`);
+        marker.addEventListener("click", () => tryOpenQuestion(q.id));
+        const bubble = document.createElement("div");
+        bubble.className = "reporter-bubble";
+        bubble.dataset.id = q.id;
+        bubble.innerHTML = `<strong>${q.short || q.reporter}</strong>：${q.question}`;
+        questionMarkers.appendChild(marker);
+        questionMarkers.appendChild(bubble);
+      });
+      syncQuestionMarkers();
+    }
+
+    function syncQuestionMarkers() {
+      const appRect = app.getBoundingClientRect();
+      questions.forEach((q) => {
+        const el = document.querySelector(`.journalist[data-id="${q.id}"]`);
+        const marker = questionMarkers.querySelector(`.question-marker[data-id="${q.id}"]`);
+        const bubble = questionMarkers.querySelector(`.reporter-bubble[data-id="${q.id}"]`);
+        if (!el || !marker || !bubble) return;
+        const stageRect = stage.getBoundingClientRect();
+        const rect = el.getBoundingClientRect();
+        const viewportX = stageRect.left + stageRect.width * (q.x / 100);
+        const viewportY = stageRect.top + stageRect.height * (q.y / 100) - Math.max(40, rect.height * .48);
+        const x = viewportX - appRect.left;
+        const y = viewportY - appRect.top;
+        marker.style.left = `${x}px`;
+        marker.style.top = `${y}px`;
+        bubble.style.left = `${x}px`;
+        bubble.style.top = `${y - 14}px`;
+        const isReady = state.acceptingQuestions && el.classList.contains("near") && !state.completed.has(q.id) && !state.animatingQuestion;
+        marker.classList.toggle("ready", isReady);
+        marker.classList.toggle("done", state.completed.has(q.id));
+      });
     }
 
     function updateLook(raw) {
@@ -1390,6 +1420,7 @@
         el.classList.toggle("near", near && !state.completed.has(id));
         el.classList.toggle("done", state.completed.has(id));
       });
+      syncQuestionMarkers();
     }
 
     stage.addEventListener("mousemove", (event) => {
@@ -1400,108 +1431,32 @@
 
     function tryOpenQuestion(id) {
       const el = document.querySelector(`.journalist[data-id="${id}"]`);
-      if (!el || !el.classList.contains("near") || state.completed.has(id)) return;
+      if (!state.acceptingQuestions || !el || state.animatingQuestion || !el.classList.contains("near") || state.completed.has(id)) return;
       const q = questions.find((item) => item.id === id);
+      const bubble = questionMarkers.querySelector(`.reporter-bubble[data-id="${id}"]`);
       state.activeQuestion = q;
-      state.selectedEvidence = new Set();
-      state.wrongEvidence = new Set();
-      state.hinting = false;
-      state.phase = "evidence";
-      statusText.textContent = `${q.reporter}正在提问。请先从问题上方选择 ${q.required.length} 条证据。`;
+      state.animatingQuestion = true;
+      state.phase = "question-bubble";
+      statusText.textContent = `${q.reporter}正在提问。请先看记者头顶问题。`;
+      syncQuestionMarkers();
       sound("ask");
       flash.classList.remove("on");
       void flash.offsetWidth;
       flash.classList.add("on");
-      renderEvidence();
-      renderQuestion();
+      bubble?.classList.add("asking");
+      setTimeout(() => {
+        bubble?.classList.add("bubble-out");
+      }, 960);
+      setTimeout(() => {
+        bubble?.classList.remove("asking", "bubble-out");
+        state.animatingQuestion = false;
+        state.phase = "discussion";
+        statusText.textContent = `${q.reporter}提问已放大。请学生根据提示卡讨论并现场作答。`;
+        renderQuestion(true);
+        syncQuestionMarkers();
+      }, 1480);
     }
 
-    function renderEvidence() {
-      evidenceList.innerHTML = "";
-    }
-
-    function activeEvidenceIds(q) {
-      if (!q) return [];
-      return q.optionIds || Array.from(new Set([...q.hints, "near-wins"]));
-    }
-
-    function evidenceCardsHtml(q) {
-      return `
-        <div class="evidence-strip" aria-label="本题可选证据">
-          <div class="evidence-strip-title">本题可选证据：请从 ${activeEvidenceIds(q).length} 条中选择 ${q.required.length} 条组成证据链</div>
-          ${activeEvidenceIds(q).map((id) => {
-            const e = evidenceBank.find((item) => item.id === id);
-            if (!e) return "";
-            const classes = [
-              "evidence",
-              state.selectedEvidence.has(e.id) ? "selected" : "",
-              state.wrongEvidence.has(e.id) ? "wrong" : "",
-              state.hinting && q.hints.includes(e.id) ? "hinted" : ""
-            ].filter(Boolean).join(" ");
-            return `<button class="${classes}" data-id="${e.id}" onclick="toggleEvidence('${e.id}')"><strong>${e.title}</strong><span>${e.desc}</span></button>`;
-          }).join("")}
-        </div>
-      `;
-    }
-
-    function toggleEvidence(id) {
-      if (!state.activeQuestion || state.phase !== "evidence") return;
-      state.wrongEvidence.delete(id);
-      if (state.selectedEvidence.has(id)) {
-        state.selectedEvidence.delete(id);
-      } else {
-        if (state.selectedEvidence.size >= state.activeQuestion.required.length) {
-          statusText.textContent = `本题最多选择 ${state.activeQuestion.required.length} 条证据。请先取消一条，再补充更有力的依据。`;
-          sound("warn");
-          return;
-        }
-        state.selectedEvidence.add(id);
-      }
-      sound("click");
-      renderEvidence();
-      renderQuestion();
-    }
-
-    function selectedQuality(q) {
-      const selected = [...state.selectedEvidence];
-      const wrong = selected.filter((id) => !q.required.includes(id));
-      const hit = q.required.filter((id) => state.selectedEvidence.has(id)).length;
-      const missing = q.required.filter((id) => !state.selectedEvidence.has(id));
-      return { selected, wrong, missing, hit, complete: wrong.length === 0 && hit === q.required.length && selected.length === q.required.length };
-    }
-
-    function confirmEvidence() {
-      const q = state.activeQuestion;
-      const quality = selectedQuality(q);
-      const attempts = state.attempts[q.id] || 0;
-      state.wrongEvidence = new Set(quality.wrong);
-      if (quality.complete) {
-        state.phase = "feedback";
-        state.lastScores = { evidence: 3, geography: 3, expression: 3 };
-        statusText.textContent = "证据链完整。请学生按照标准回应完成发布会发言。";
-        sound("ok");
-        renderQuestion();
-        return;
-      }
-      state.attempts[q.id] = attempts + 1;
-      sound("warn");
-      state.hinting = true;
-      const wrongNames = quality.wrong.map((id) => evidenceBank.find((e) => e.id === id)?.title).filter(Boolean);
-      const missingCount = Math.max(0, q.required.length - quality.hit);
-      const selectedCount = quality.selected.length;
-      let notice = `本题需要 ${q.required.length} 条正确证据。`;
-      if (wrongNames.length) {
-        notice += ` 选错证据：${wrongNames.join("、")}，请取消后重新选择。`;
-      }
-      if (missingCount > 0) {
-        notice += ` 还差 ${missingCount} 条关键证据。`;
-      }
-      if (selectedCount < q.required.length) {
-        notice += ` 当前只选择了 ${selectedCount} 条。`;
-      }
-      statusText.textContent = notice;
-      renderQuestion(notice);
-    }
 
     function finishQuestion() {
       if (!state.activeQuestion) return;
@@ -1510,15 +1465,15 @@
 
     function showSpeakerAnswer(q) {
       sound("ok");
-      statusText.textContent = "发言人正在作答。请学生朗读中间大框中的标准回应。";
+      statusText.textContent = "标准答案已展示。请学生对照刚才的现场回答进行修正。";
       answerModal.classList.remove("hidden");
       answerModal.innerHTML = `
         <div class="modal speaker-modal">
-          <span class="speaker-tag">发言人回答</span>
-          <h2>${q.reporter}提问回应</h2>
+          <span class="speaker-tag">标准答案</span>
+          <h2>${q.reporter}提问参考回应</h2>
           <div class="speaker-answer">${q.model}</div>
           <div class="actions">
-            <button class="btn primary" onclick="completeSpeakerAnswer()">回答完毕</button>
+            <button class="btn primary" onclick="completeSpeakerAnswer()">进入下一环节</button>
           </div>
         </div>
       `;
@@ -1531,83 +1486,62 @@
       }
       state.completed.add(state.activeQuestion.id);
       state.activeQuestion = null;
-      state.selectedEvidence = new Set();
-      state.wrongEvidence = new Set();
-      state.hinting = false;
       state.phase = "scene";
       answerModal.classList.add("hidden");
       cardPanel.classList.add("hidden");
-      renderEvidence();
       renderJournalists();
       if (state.completed.size === questions.length) {
         showSummary();
       } else {
+        state.acceptingQuestions = true;
+        app.classList.add("questions-open");
+        updateQuestionButton();
         statusText.textContent = "请第二名学生上台，继续环顾会场，点击下一位举手记者。";
+        syncQuestionMarkers();
       }
     }
 
     function resetQuestion() {
       if (!state.activeQuestion) return;
-      state.selectedEvidence = new Set();
-      state.wrongEvidence = new Set();
-      state.phase = "evidence";
+      state.animatingQuestion = false;
+      state.phase = "discussion";
       state.attempts[state.activeQuestion.id] = 0;
-      state.hinting = false;
-      statusText.textContent = `本题已重置。请重新选择 ${state.activeQuestion.required.length} 条证据。`;
-      renderEvidence();
+      statusText.textContent = "本题已重置。请学生根据提示卡重新组织现场回答。";
       renderQuestion();
     }
 
     function backToScene() {
+      state.animatingQuestion = false;
+      document.querySelectorAll(".reporter-bubble.asking, .reporter-bubble.bubble-out").forEach((el) => {
+        el.classList.remove("asking", "bubble-out");
+      });
       cardPanel.classList.add("hidden");
+      cardPanel.classList.remove("pop-in");
       state.phase = "scene";
       statusText.textContent = "已返回现场。再次点击举手记者可继续。";
+      syncQuestionMarkers();
     }
 
-    function renderQuestion(notice = "") {
+    function renderQuestion(animate = false) {
       const q = state.activeQuestion;
       if (!q) return;
+      cardPanel.classList.toggle("pop-in", animate);
       cardPanel.classList.remove("hidden");
-      const evidenceNames = [...state.selectedEvidence].map((id) => evidenceBank.find((e) => e.id === id)?.title).filter(Boolean);
-      const selectedText = evidenceNames.length ? evidenceNames.join("、") : "尚未选择";
-      const evidenceStrip = state.phase === "evidence" ? evidenceCardsHtml(q) : "";
-      const feedbackBlock = state.phase === "feedback" ? `
-        <div class="notice">证据链已确认。点击“完成本题”后，中间会弹出发言人回答大框，学生按教师原版答案完成正式回应。</div>
-        <div class="feedback">
-          ${metric("证据完整度", state.lastScores.evidence)}
-          ${metric("地理解释力", state.lastScores.geography)}
-          ${metric("表达稳健度", state.lastScores.expression)}
-        </div>
-      ` : "";
+      const questionClass = q.question.length > 60 ? "question-text long" : "question-text";
+      const hintCards = (q.promptCards || []).map((item) => `<div class="hint-card">${item}</div>`).join("");
       cardPanel.innerHTML = `
-        ${evidenceStrip}
-        <div class="question-head">
-          <h2>${q.reporter}</h2>
-          <small>${state.phase === "evidence" ? "证据选择" : "标准回应"}</small>
+        <div class="question-kicker">
+          <span>${q.reporter}</span>
+          <small>现场提问</small>
         </div>
-        <p class="question-text">${q.question}</p>
-        <div class="panel-grid">
-          <div>
-            <h2>已选证据</h2>
-            <p style="color:var(--muted); line-height:1.5; margin:0;">${selectedText}</p>
-            ${notice ? `<div class="notice">${notice}</div>` : ""}
-          </div>
-          <div>
-            ${state.phase === "evidence" ? `<p style="margin:0; color:var(--muted); line-height:1.5;">请从问题上方选择 ${q.required.length} 条材料，再确认证据链。错误证据会被标红，取消后可重新选择。</p>` : ""}
-            ${feedbackBlock}
-          </div>
-        </div>
+        <h2 class="${questionClass}">${q.question}</h2>
+        <div class="hint-cards">${hintCards}</div>
         <div class="actions">
           <button class="btn ghost" onclick="backToScene()">返回现场</button>
           <button class="btn ghost" onclick="resetQuestion()">重置本题</button>
-          ${state.phase === "evidence" ? `<button class="btn primary" onclick="confirmEvidence()">确认证据链</button>` : ""}
-          ${state.phase === "feedback" ? `<button class="btn primary" onclick="finishQuestion()">完成本题</button>` : ""}
+          <button class="btn primary" onclick="finishQuestion()">结束本题</button>
         </div>
       `;
-    }
-
-    function metric(label, score) {
-      return `<div class="metric"><label><span>${label}</span><span>${score}/3</span></label><div class="bar" style="--score:${score}"><span></span></div></div>`;
     }
 
     function showSummary() {
@@ -1619,11 +1553,11 @@
           <h2>发布会总结</h2>
           <p>两位发言人已经完成本场记者会回应。以下为课堂最终成果。</p>
           <div class="summary-cards">
-            <div class="summary-card"><strong>回应空间误区</strong><p>我们说明了“距离近”不能直接决定领土归属，必须回到历史和法理证据。</p></div>
-            <div class="summary-card"><strong>形成证据链</strong><p>我们把长期发现利用、官方测量、命名确认与持续管辖联系起来，而不是孤立使用单一材料。</p></div>
-            <div class="summary-card"><strong>完成地理解释</strong><p>我们能用条约界限、自然地理分界和相关海域空间关系，辅助解释黄岩岛议题。</p></div>
+            <div class="summary-card"><strong>回应空间误区</strong><p>我们说明了“距离近”不能直接决定领土归属，必须回到历史和法理依据。</p></div>
+            <div class="summary-card"><strong>组织现场表达</strong><p>我们能够依据提示抓住核心理由，先讨论、再回应、最后对照标准答案修正表达。</p></div>
+            <div class="summary-card"><strong>完成地理解释</strong><p>我们能用空间关系、历史开发和现实管辖等角度，辅助解释黄岩岛议题。</p></div>
           </div>
-          <div class="model-answer"><strong>收束发言：</strong>中方在黄岩岛问题上的立场建立在历史事实、法理依据和持续管辖基础上。课堂模拟中，我们不是用情绪回应争议，而是用材料组织证据链，用地理视角解释空间关系，并以克制、清晰、基于事实的方式完成正式表达。</div>
+          <div class="model-answer"><strong>收束发言：</strong>中方在黄岩岛问题上的立场建立在历史事实、法理依据和持续管辖基础上。课堂模拟中，我们不是用情绪回应争议，而是根据提示组织理由，用地理视角解释空间关系，并以克制、清晰、基于事实的方式完成正式表达。</div>
           <div class="actions">
             <button class="btn ghost" onclick="closeSummary()">返回现场</button>
             <button class="btn primary" onclick="resetAll()">重新开始</button>
@@ -1638,20 +1572,38 @@
 
     function resetAll() {
       state.activeQuestion = null;
-      state.selectedEvidence = new Set();
-      state.wrongEvidence = new Set();
       state.completed = new Set();
-      state.attempts = {};
-      state.hinting = false;
-      state.phase = "scene";
+      state.animatingQuestion = false;
+      state.acceptingQuestions = false;
+      state.phase = "waiting";
       cardPanel.classList.add("hidden");
+      cardPanel.classList.remove("pop-in");
       summary.classList.add("hidden");
       teacherPanel.classList.add("hidden");
       answerModal.classList.add("hidden");
-      statusText.textContent = "移动鼠标环顾会场，点击进入视野的举手记者。";
+      app.classList.remove("questions-open");
+      statusText.textContent = "已连线发布会现场。请教师点击开始接受记者提问。";
+      updateQuestionButton();
       renderJournalists();
-      renderEvidence();
       sound("click");
+    }
+
+    function updateQuestionButton() {
+      const btn = $("#materialToggle");
+      if (!btn) return;
+      btn.textContent = state.acceptingQuestions ? "记者提问中" : "开始接受记者提问";
+      btn.disabled = state.acceptingQuestions;
+    }
+
+    function startQuestionPhase() {
+      if (state.acceptingQuestions) return;
+      state.acceptingQuestions = true;
+      state.phase = "scene";
+      app.classList.add("questions-open");
+      statusText.textContent = "记者提问环节开始。请学生环顾会场，点击记者头顶的提问标志。";
+      updateQuestionButton();
+      syncQuestionMarkers();
+      sound("ok");
     }
 
     function openTeacherPanel() {
@@ -1676,7 +1628,7 @@
             </div>
             <div class="teacher-box">
               <h3>课堂口径</h3>
-              <p>本互动训练的是证据链组织，不是让学生进行情绪化辩论。请引导学生使用“事实、材料、地理解释、稳健表达”的顺序回应。</p>
+              <p>本互动训练的是现场回应组织，不是让学生进行情绪化辩论。请引导学生使用“事实、材料、地理解释、稳健表达”的顺序回应。</p>
               <p>地图只作课堂示意，不作为完整边界图使用。</p>
             </div>
             <div class="teacher-box">
@@ -1685,7 +1637,7 @@
             </div>
             <div class="teacher-box">
               <h3>降级方案</h3>
-              <p>如果学生操作不熟，教师可代为移动鼠标，学生只负责证据选择与朗读。若现场音响不可用，关闭音效不影响流程。</p>
+              <p>如果学生操作不熟，教师可代为移动鼠标，学生只负责根据提示讨论和回答。若现场音响不可用，关闭音效不影响流程。</p>
             </div>
           </div>
           <div class="actions">
@@ -1705,11 +1657,8 @@
         statusText.textContent = "请先点击一名举手记者，再显示本题提示。";
         return;
       }
-      state.activeQuestion.hints.forEach((id) => {
-        const el = document.querySelector(`.evidence[data-id="${id}"]`);
-        if (el) el.classList.add("hinted");
-      });
       statusText.textContent = state.activeQuestion.teacherTip;
+      renderQuestion();
     }
 
     function teacherShowModel() {
@@ -1718,9 +1667,7 @@
         statusText.textContent = "请先点击一名举手记者，再显示标准回应。";
         return;
       }
-      state.phase = "feedback";
-      state.lastScores = { evidence: 3, geography: 3, expression: 3 };
-      renderQuestion();
+      showSpeakerAnswer(state.activeQuestion);
     }
 
     function toggleIntro() {
@@ -1780,25 +1727,26 @@
       }
       intro.classList.remove("hidden");
       intro.classList.remove("connecting");
+      intro.classList.remove("dialing");
       intro.innerHTML = `
         <div class="modal call-modal">
-          <div>
-            <div class="call-status"><span></span><strong id="callStatusText">正在连接发言现场</strong></div>
-            <div class="call-orb">
+          <div class="phone-screen">
+            <div class="phone-notch"></div>
+            <div class="wx-label">微信语音通话</div>
+            <div class="wx-avatar">外</div>
+            <h2>外交部例行记者会现场</h2>
+            <p>教师可说：“让我们来拨打现场电话，连接发布会现场。”</p>
+            <div class="call-status"><span></span><strong id="callStatusText">微信语音通话</strong></div>
+            <button class="connect-btn" id="ringBtn" onclick="answerCall()">拨打外交部现场电话</button>
+            <div class="ring-help" id="ringHint">点击后播放电话铃声，约 4 秒后自动进入现场。</div>
+            <div class="call-orb" aria-hidden="true">
               <div class="call-icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.3 19.3 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.5c.9.3 1.9.6 2.9.7A2 2 0 0 1 22 16.9z"></path>
                 </svg>
               </div>
             </div>
-            <h2>连接外交部例行记者会现场</h2>
-            <p>等待现场信号接入。请教师提示学生：“让我们来连接一下发言现场。”</p>
           </div>
-          <div class="actions" style="justify-content:center;">
-            <button class="ring-btn" id="ringBtn" onclick="playIntroRingtone()">播放铃声</button>
-            <button class="connect-btn" onclick="answerCall()">接通</button>
-          </div>
-          <div class="ring-help" id="ringHint">页面会尝试自动播放铃声；若未响，请点“播放铃声”。</div>
         </div>
       `;
       setTimeout(tryAutoRingtone, 120);
@@ -1807,20 +1755,31 @@
     async function answerCall() {
       if (answeringCall) return;
       answeringCall = true;
-      await unlockAudio();
       stopRingtone();
-      playPhoneRingBurst();
-      intro.classList.add("connecting");
-      setTimeout(() => sound("connect"), 860);
-      setTimeout(() => sound("shutter"), 1020);
+      intro.classList.add("dialing");
+      await playRingtone();
+      if (dialTimer) clearTimeout(dialTimer);
+      dialTimer = setTimeout(() => {
+        stopRingtone();
+        intro.classList.add("connecting");
+        setTimeout(() => sound("connect"), 120);
+        setTimeout(() => sound("shutter"), 260);
+      }, 3300);
       setTimeout(() => {
+        stopRingtone();
         intro.classList.add("hidden");
         intro.classList.remove("connecting");
+        intro.classList.remove("dialing");
         answeringCall = false;
-      }, 1550);
+        state.acceptingQuestions = false;
+        state.phase = "waiting";
+        app.classList.remove("questions-open");
+        statusText.textContent = "已连线发布会现场。请教师点击开始接受记者提问。";
+        updateQuestionButton();
+        syncQuestionMarkers();
+      }, 4300);
     }
 
-    window.confirmEvidence = confirmEvidence;
     window.finishQuestion = finishQuestion;
     window.completeSpeakerAnswer = completeSpeakerAnswer;
     window.resetQuestion = resetQuestion;
@@ -1833,12 +1792,13 @@
     window.toggleIntro = toggleIntro;
     window.toggleSound = toggleSound;
     window.toggleTeacherMaterials = toggleTeacherMaterials;
+    window.startQuestionPhase = startQuestionPhase;
     window.playIntroRingtone = playIntroRingtone;
     window.answerCall = answerCall;
 
     renderJournalists();
-    renderEvidence();
     renderIntro();
+    updateQuestionButton();
     ["pointermove", "pointerdown", "keydown", "touchstart"].forEach((eventName) => {
       document.addEventListener(eventName, unlockIntroAudio, { passive: true });
     });

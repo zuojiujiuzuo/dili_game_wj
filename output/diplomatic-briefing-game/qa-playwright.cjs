@@ -18,14 +18,19 @@ const fileUrl = `file://${path.join(root, "standalone.html")}`;
 
   await page.goto(fileUrl);
   await page.waitForSelector(".room");
-  await page.waitForSelector("#ringBtn");
-  await page.locator("#ringBtn").click({ force: true });
+  await page.waitForSelector("text=外交部例行记者会现场");
+  await page.waitForSelector("text=拨打外交部现场电话");
+  await page.waitForSelector("#intro .connect-btn");
   await page.screenshot({ path: path.join(root, "qa-initial.png"), fullPage: true });
-  await page.click("text=接通");
-  await page.waitForFunction(() => document.querySelector("#intro").classList.contains("hidden"));
-  await page.click("text=教师材料");
-  await page.waitForSelector("text=课堂主线");
-  await page.click("text=收起");
+  await page.locator("#intro .connect-btn").click();
+  await page.waitForSelector("text=正在呼叫...");
+  await page.waitForFunction(() => document.querySelector("#intro").classList.contains("hidden"), { timeout: 7000 });
+  await page.waitForSelector("text=开始接受记者提问");
+  await page.waitForFunction(() => !document.querySelector(".question-marker.ready"));
+  await page.locator("#materialToggle", { hasText: "开始接受记者提问" }).click();
+  await page.waitForSelector("text=记者提问中");
+  await page.waitForFunction(() => document.querySelectorAll(".question-marker.ready").length > 0);
+
   const hotspot = await page.locator("#teacherHotspot").boundingBox();
   await page.mouse.move(hotspot.x + hotspot.width / 2, hotspot.y + hotspot.height / 2);
   await page.mouse.down();
@@ -35,47 +40,35 @@ const fileUrl = `file://${path.join(root, "standalone.html")}`;
   await page.locator("#teacherPanel .btn.primary", { hasText: "关闭" }).click();
   await page.waitForFunction(() => document.querySelector("#teacherPanel").classList.contains("hidden"));
   await page.screenshot({ path: path.join(root, "qa-scene.png"), fullPage: true });
+
   await page.mouse.move(460, 360);
-  await page.locator(".journalist.raised").first().click({ force: true });
+  await page.locator(".question-marker.ready").first().click({ force: true });
+  await page.waitForSelector(".reporter-bubble.asking");
   await page.waitForSelector(".card-panel:not(.hidden)");
+  await page.waitForSelector("text=黄岩岛距离菲律宾更近");
+  await page.waitForSelector("text=提示：①优先依据最早开发、长期实际管控");
+  await page.waitForSelector("text=提示：②可举例子说明");
   await page.screenshot({ path: path.join(root, "qa-question.png"), fullPage: true });
-  await page.locator(".evidence", { hasText: "距离不能直接决定归属" }).click();
-  await page.locator(".evidence", { hasText: "阿拉斯加类比例证" }).click();
-  await page.locator('.evidence[data-id="near-wins"]').click();
-  await page.locator("button", { hasText: "确认证据链" }).click();
-  await page.waitForSelector("text=选错证据：谁距离近就归谁");
-  const wrongClass = await page.locator('.evidence[data-id="near-wins"]').evaluate((el) => el.classList.contains("wrong"));
-  if (!wrongClass) throw new Error("Wrong evidence was not marked");
-  await page.screenshot({ path: path.join(root, "qa-wrong-evidence.png"), fullPage: true });
-  await page.locator('.evidence[data-id="near-wins"]').click();
-  await page.locator(".evidence", { hasText: "优先看开发、管控与活动痕迹" }).click();
-  await page.locator("button", { hasText: "确认证据链" }).click();
-  await page.waitForSelector("text=中间会弹出发言人回答大框");
-  await page.screenshot({ path: path.join(root, "qa-standard-answer.png"), fullPage: true });
-  await page.locator("button", { hasText: "完成本题" }).click();
+  await page.locator("button", { hasText: "结束本题" }).click();
   await page.waitForSelector(".speaker-modal");
   const firstAnswer = await page.locator(".speaker-answer").textContent();
   if (!firstAnswer.includes("领土归属从来都和地理距离远近没有任何关系")) {
-    throw new Error("First speaker answer did not contain the teacher's original answer");
+    throw new Error("First standard answer was not shown");
   }
-  await page.screenshot({ path: path.join(root, "qa-speaker-answer.png"), fullPage: true });
-  await page.locator("button", { hasText: "回答完毕" }).click();
+  await page.screenshot({ path: path.join(root, "qa-standard-answer.png"), fullPage: true });
+  await page.locator("button", { hasText: "进入下一环节" }).click();
 
   await page.mouse.move(850, 360);
-  await page.locator(".journalist.raised:not(.done)").first().click({ force: true });
-  await page.waitForSelector(".card-panel:not(.hidden)");
-  await page.locator('.evidence[data-id="state-licensed-fishing"]').click();
-  await page.locator('.evidence[data-id="fishing-sovereign-control"]').click();
-  await page.locator('.evidence[data-id="multi-evidence-chain"]').click();
-  await page.locator("button", { hasText: "确认证据链" }).click();
-  await page.waitForSelector("text=中间会弹出发言人回答大框");
-  await page.locator("button", { hasText: "完成本题" }).click();
+  await page.locator(".question-marker.ready").first().click({ force: true });
+  await page.waitForSelector("text=依法办理我国发放的渔业捕捞许可证");
+  await page.waitForSelector("text=提示：②多方证据相互印证");
+  await page.locator("button", { hasText: "结束本题" }).click();
   await page.waitForSelector(".speaker-modal");
   const secondAnswer = await page.locator(".speaker-answer").textContent();
   if (!secondAnswer.includes("依法办理我国发放的渔业捕捞许可证")) {
-    throw new Error("Second speaker answer did not contain the teacher's original answer");
+    throw new Error("Second standard answer was not shown");
   }
-  await page.locator("button", { hasText: "回答完毕" }).click();
+  await page.locator("button", { hasText: "进入下一环节" }).click();
   await page.waitForSelector("text=发布会总结");
 
   await page.screenshot({ path: path.join(root, "qa-summary.png"), fullPage: true });
