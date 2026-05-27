@@ -18,6 +18,8 @@ const fileUrl = `file://${path.join(root, "standalone.html")}`;
 
   await page.goto(fileUrl);
   await page.waitForSelector(".room");
+  await page.waitForSelector("#ringBtn");
+  await page.locator("#ringBtn").click({ force: true });
   await page.screenshot({ path: path.join(root, "qa-initial.png"), fullPage: true });
   await page.click("text=接通");
   await page.waitForFunction(() => document.querySelector("#intro").classList.contains("hidden"));

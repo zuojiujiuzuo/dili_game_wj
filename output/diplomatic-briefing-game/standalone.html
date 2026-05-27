@@ -852,6 +852,28 @@
       box-shadow: 0 14px 28px rgba(45, 157, 112, .28);
     }
 
+    .ring-btn {
+      min-height: 34px;
+      padding: 6px 12px;
+      border: 1px solid rgba(158, 233, 200, .42);
+      border-radius: 999px;
+      color: #dfffee;
+      background: rgba(109, 214, 165, .1);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .ring-btn.ringing {
+      color: #07150f;
+      background: rgba(158, 233, 200, .86);
+    }
+
+    .ring-help {
+      margin-top: 8px;
+      color: #9fb2c8;
+      font-size: 12px;
+    }
+
     .intro.connecting {
       pointer-events: none;
       animation: introFadeOut 1.05s ease-in forwards;
@@ -1240,7 +1262,8 @@
     }
 
     function startRingtone() {
-      if (!settings.sound || ringTimer) return;
+      if (!settings.sound || ringTimer) return false;
+      if (audioCtx && audioCtx.state === "suspended") return false;
       const ring = () => {
         try {
           const pair = ringStep % 2 === 0 ? [660, 820] : [590, 760];
@@ -1251,12 +1274,53 @@
       };
       ring();
       ringTimer = setInterval(ring, 1150);
+      updateRingUi(true);
+      return true;
     }
 
     async function unlockIntroAudio() {
       if (intro.classList.contains("hidden") || answeringCall) return;
       const ok = await unlockAudio();
       if (ok) startRingtone();
+    }
+
+    function updateRingUi(active) {
+      const btn = $("#ringBtn");
+      const hint = $("#ringHint");
+      const status = $("#callStatusText");
+      if (btn) {
+        btn.classList.toggle("ringing", active);
+        btn.textContent = active ? "铃声播放中" : "播放铃声";
+      }
+      if (hint) {
+        hint.textContent = active ? "铃声已播放，点击“接通”进入发布会现场。" : "若浏览器拦截自动播放，请先点这里播放铃声。";
+      }
+      if (status) {
+        status.textContent = active ? "正在呼叫发言现场" : "正在连接发言现场";
+      }
+    }
+
+    function tryAutoRingtone() {
+      if (!settings.sound || intro.classList.contains("hidden")) return;
+      try {
+        audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === "running") {
+          startRingtone();
+        } else {
+          updateRingUi(false);
+        }
+      } catch (err) {
+        updateRingUi(false);
+      }
+    }
+
+    async function playIntroRingtone() {
+      if (answeringCall) return;
+      const ok = await unlockAudio();
+      if (!ok) return;
+      const started = startRingtone();
+      if (started) playPhoneRingBurst();
+      updateRingUi(true);
     }
 
     function playPhoneRingBurst() {
@@ -1275,6 +1339,7 @@
     function stopRingtone() {
       if (ringTimer) clearInterval(ringTimer);
       ringTimer = null;
+      updateRingUi(false);
     }
 
     function renderJournalists() {
@@ -1718,7 +1783,7 @@
       intro.innerHTML = `
         <div class="modal call-modal">
           <div>
-            <div class="call-status"><span></span>正在连接发言现场</div>
+            <div class="call-status"><span></span><strong id="callStatusText">正在连接发言现场</strong></div>
             <div class="call-orb">
               <div class="call-icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -1730,10 +1795,13 @@
             <p>等待现场信号接入。请教师提示学生：“让我们来连接一下发言现场。”</p>
           </div>
           <div class="actions" style="justify-content:center;">
+            <button class="ring-btn" id="ringBtn" onclick="playIntroRingtone()">播放铃声</button>
             <button class="connect-btn" onclick="answerCall()">接通</button>
           </div>
+          <div class="ring-help" id="ringHint">页面会尝试自动播放铃声；若未响，请点“播放铃声”。</div>
         </div>
       `;
+      setTimeout(tryAutoRingtone, 120);
     }
 
     async function answerCall() {
@@ -1765,6 +1833,7 @@
     window.toggleIntro = toggleIntro;
     window.toggleSound = toggleSound;
     window.toggleTeacherMaterials = toggleTeacherMaterials;
+    window.playIntroRingtone = playIntroRingtone;
     window.answerCall = answerCall;
 
     renderJournalists();
