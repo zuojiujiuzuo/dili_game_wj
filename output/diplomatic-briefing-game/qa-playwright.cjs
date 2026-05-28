@@ -30,6 +30,10 @@ const fileUrl = `file://${path.join(root, "standalone.html")}`;
   await page.locator("#materialToggle", { hasText: "开始接受记者提问" }).click();
   await page.waitForSelector("text=记者提问中");
   await page.waitForFunction(() => document.querySelectorAll(".question-marker.ready").length > 0);
+  const markerText = await page.locator(".question-marker.ready").first().textContent();
+  if ((markerText || "").trim()) {
+    throw new Error("Question marker should be icon-only");
+  }
 
   const hotspot = await page.locator("#teacherHotspot").boundingBox();
   await page.mouse.move(hotspot.x + hotspot.width / 2, hotspot.y + hotspot.height / 2);

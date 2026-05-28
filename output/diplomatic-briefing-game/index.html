@@ -193,11 +193,6 @@
       white-space: nowrap;
     }
 
-    .questions-open .journalist.raised.near .badge,
-    .journalist.done .badge {
-      opacity: 1;
-    }
-
     .questions-open .journalist.raised.near {
       filter: drop-shadow(0 0 16px rgba(215, 180, 106, .85));
     }
@@ -233,43 +228,63 @@
       left: 0;
       top: 0;
       z-index: 1;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      min-height: 34px;
-      padding: 7px 11px;
-      border: 1px solid rgba(255, 232, 165, .8);
-      border-radius: 999px;
-      background: linear-gradient(180deg, rgba(255, 222, 138, .96), rgba(197, 147, 54, .94));
-      color: #151006;
-      font-size: 14px;
-      font-weight: 900;
-      white-space: nowrap;
-      box-shadow: 0 10px 24px rgba(0,0,0,.34), 0 0 0 5px rgba(215, 180, 106, .16);
+      display: grid;
+      place-items: center;
+      width: 56px;
+      height: 70px;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: transparent;
+      font-size: 0;
       opacity: 0;
       pointer-events: none;
-      transform: translate(-50%, -100%);
-      transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+      transform: translate(-50%, -100%) translateY(-2px);
+      transition: transform .18s ease, opacity .18s ease, filter .18s ease;
     }
 
     .question-marker::before {
-      content: "?";
+      content: "!";
       display: grid;
       place-items: center;
-      width: 18px;
-      height: 18px;
+      width: 52px;
+      height: 64px;
       border-radius: 50%;
-      background: rgba(11, 17, 24, .9);
-      color: #ffe6a8;
-      font-size: 13px;
+      background: radial-gradient(circle, rgba(255, 227, 118, .22), rgba(255, 202, 57, .04) 58%, transparent 72%);
+      color: #ffd24a;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 58px;
+      font-weight: 900;
       line-height: 1;
+      text-shadow:
+        0 0 6px rgba(255, 242, 167, .95),
+        0 0 14px rgba(255, 207, 72, .9),
+        0 0 30px rgba(255, 184, 36, .78);
+    }
+
+    .question-marker::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 47%;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: rgba(255, 205, 64, .18);
+      box-shadow:
+        0 0 18px rgba(255, 217, 80, .8),
+        0 0 40px rgba(255, 180, 38, .45);
+      transform: translate(-50%, -50%);
+      z-index: -1;
+      animation: markerPulse 1.35s ease-in-out infinite;
     }
 
     .questions-open .question-marker.ready {
       opacity: 1;
       pointer-events: auto;
-      transform: translate(-50%, -100%) translateY(-5px) scale(1.05);
-      box-shadow: 0 14px 28px rgba(0,0,0,.38), 0 0 0 7px rgba(215, 180, 106, .22);
+      transform: translate(-50%, -100%) translateY(-8px) scale(1.06);
+      filter: drop-shadow(0 16px 18px rgba(0, 0, 0, .35));
     }
 
     .question-marker.done {
@@ -295,6 +310,11 @@
 
     .journalist.raised.near:not(.done) .click-tip {
       opacity: 0;
+    }
+
+    @keyframes markerPulse {
+      0%, 100% { opacity: .48; transform: translate(-50%, -50%) scale(.82); }
+      50% { opacity: .9; transform: translate(-50%, -50%) scale(1.14); }
     }
 
     .reporter-bubble {
@@ -1371,7 +1391,6 @@
         marker.className = "question-marker";
         marker.dataset.id = q.id;
         marker.type = "button";
-        marker.textContent = "提问";
         marker.setAttribute("aria-label", `${q.reporter}，点击提问`);
         marker.addEventListener("click", () => tryOpenQuestion(q.id));
         const bubble = document.createElement("div");
