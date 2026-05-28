@@ -24,15 +24,15 @@ const fileUrl = `file://${path.join(root, "standalone.html")}`;
   await page.screenshot({ path: path.join(root, "qa-initial.png"), fullPage: true });
   await page.locator("#intro .connect-btn").click();
   await page.waitForSelector("text=正在呼叫...");
-  await page.waitForFunction(() => document.querySelector("#intro").classList.contains("hidden"), { timeout: 7000 });
+  await page.waitForFunction(() => document.querySelector("#intro").classList.contains("hidden"), { timeout: 12000 });
   await page.waitForSelector("text=开始接受记者提问");
   await page.waitForFunction(() => !document.querySelector(".question-marker.ready"));
   await page.locator("#materialToggle", { hasText: "开始接受记者提问" }).click();
   await page.waitForSelector("text=记者提问中");
   await page.waitForFunction(() => document.querySelectorAll(".question-marker.ready").length > 0);
   const markerText = await page.locator(".question-marker.ready").first().textContent();
-  if ((markerText || "").trim()) {
-    throw new Error("Question marker should be icon-only");
+  if (!/(美联社|法新社)/.test(markerText || "")) {
+    throw new Error("Question marker should show the media name");
   }
 
   const hotspot = await page.locator("#teacherHotspot").boundingBox();
@@ -54,26 +54,16 @@ const fileUrl = `file://${path.join(root, "standalone.html")}`;
   await page.waitForSelector("text=提示：②可举例子说明");
   await page.screenshot({ path: path.join(root, "qa-question.png"), fullPage: true });
   await page.locator("button", { hasText: "结束本题" }).click();
-  await page.waitForSelector(".speaker-modal");
-  const firstAnswer = await page.locator(".speaker-answer").textContent();
-  if (!firstAnswer.includes("领土归属从来都和地理距离远近没有任何关系")) {
-    throw new Error("First standard answer was not shown");
-  }
+  await page.waitForFunction(() => document.querySelector("#cardPanel").classList.contains("hidden"));
+  await page.waitForFunction(() => !document.querySelector(".speaker-modal"));
   await page.screenshot({ path: path.join(root, "qa-standard-answer.png"), fullPage: true });
-  await page.locator("button", { hasText: "进入下一环节" }).click();
 
   await page.mouse.move(850, 360);
   await page.locator(".question-marker.ready").first().click({ force: true });
   await page.waitForSelector("text=依法办理我国发放的渔业捕捞许可证");
   await page.waitForSelector("text=提示：②多方证据相互印证");
   await page.locator("button", { hasText: "结束本题" }).click();
-  await page.waitForSelector(".speaker-modal");
-  const secondAnswer = await page.locator(".speaker-answer").textContent();
-  if (!secondAnswer.includes("依法办理我国发放的渔业捕捞许可证")) {
-    throw new Error("Second standard answer was not shown");
-  }
-  await page.locator("button", { hasText: "进入下一环节" }).click();
-  await page.waitForSelector("text=发布会总结");
+  await page.waitForSelector("text=本场记者提问已完成");
 
   await page.screenshot({ path: path.join(root, "qa-summary.png"), fullPage: true });
   if (errors.length) {

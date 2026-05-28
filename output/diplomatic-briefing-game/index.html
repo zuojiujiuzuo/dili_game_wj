@@ -197,20 +197,6 @@
       filter: drop-shadow(0 0 16px rgba(215, 180, 106, .85));
     }
 
-    .questions-open .journalist.raised.near::before {
-      content: "";
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 112px;
-      height: 68px;
-      border: 1px solid rgba(215, 180, 106, .72);
-      border-radius: 999px;
-      background: radial-gradient(circle, rgba(215, 180, 106, .16), transparent 66%);
-      box-shadow: 0 0 22px rgba(215, 180, 106, .42);
-      transform: translate(-50%, -50%);
-    }
-
     .journalist.done {
       opacity: .58;
       filter: grayscale(.25);
@@ -242,6 +228,22 @@
       pointer-events: none;
       transform: translate(-50%, -100%) translateY(-2px);
       transition: transform .18s ease, opacity .18s ease, filter .18s ease;
+    }
+
+    .marker-label {
+      position: absolute;
+      left: 50%;
+      top: -26px;
+      min-width: 96px;
+      color: #ffd24a;
+      font-size: 24px;
+      font-weight: 900;
+      text-align: center;
+      text-shadow:
+        0 0 6px rgba(255, 242, 167, .95),
+        0 0 16px rgba(255, 207, 72, .78),
+        0 0 30px rgba(255, 184, 36, .58);
+      transform: translateX(-50%);
     }
 
     .question-marker::before {
@@ -1184,6 +1186,7 @@
         size: 110,
         parallax: 0,
         question: "黄岩岛距离菲律宾更近，为什么黄岩岛不属于菲方？",
+        audio: "assets/question-1.mp3",
         promptCards: [
           "提示：①优先依据最早开发、长期实际管控、世代民众活动痕迹确定主权",
           "提示：②可举例子说明"
@@ -1200,6 +1203,7 @@
         size: 110,
         parallax: 0,
         question: "中方一直提出，中国渔民在黄岩岛海域拥有长达两千多年的传统捕鱼历史，以此作为主权依据。这只是普通渔民自发的民间生产行为，并不具备官方属性，请问单纯的民间捕鱼活动，真的能够作为证明国家领土主权的有效依据吗？",
+        audio: "assets/question-2.mp3",
         promptCards: [
           "提示：①在海域作业，必须依法办理我国发放的渔业捕捞许可证，作业区域、生产规范全都由国家统一划定约束，不是无组织的个人自发行为。",
           "提示：②多方证据相互印证"
@@ -1240,6 +1244,7 @@
     let audioUnlocked = false;
     let answeringCall = false;
     let ringtoneAudio = null;
+    let questionAudio = null;
     let dialTimer = null;
 
     async function unlockAudio() {
@@ -1304,7 +1309,7 @@
         btn.textContent = active ? "正在拨打..." : "拨打外交部现场电话";
       }
       if (hint) {
-        hint.textContent = active ? "正在连接外交部例行记者会现场，稍后自动进入。" : "点击后播放电话铃声，约 4 秒后自动进入现场。";
+        hint.textContent = active ? "正在连接外交部例行记者会现场，稍后自动进入。" : "";
       }
       if (status) {
         status.textContent = active ? "正在呼叫..." : "微信语音通话";
@@ -1313,6 +1318,26 @@
 
     function tryAutoRingtone() {
       updateRingUi(false);
+    }
+
+    function stopQuestionAudio() {
+      if (questionAudio) {
+        questionAudio.pause();
+        questionAudio.currentTime = 0;
+      }
+    }
+
+    async function playQuestionAudio(q) {
+      if (!settings.sound || !q.audio) return false;
+      try {
+        stopQuestionAudio();
+        questionAudio = new Audio(q.audio);
+        questionAudio.volume = .92;
+        await questionAudio.play();
+        return true;
+      } catch (err) {
+        return false;
+      }
     }
 
     async function playIntroRingtone() {
@@ -1391,6 +1416,7 @@
         marker.className = "question-marker";
         marker.dataset.id = q.id;
         marker.type = "button";
+        marker.innerHTML = `<span class="marker-label">${q.short}</span>`;
         marker.setAttribute("aria-label", `${q.reporter}，点击提问`);
         marker.addEventListener("click", () => tryOpenQuestion(q.id));
         const bubble = document.createElement("div");
@@ -1459,6 +1485,7 @@
       statusText.textContent = `${q.reporter}正在提问。请先看记者头顶问题。`;
       syncQuestionMarkers();
       sound("ask");
+      playQuestionAudio(q);
       flash.classList.remove("on");
       void flash.offsetWidth;
       flash.classList.add("on");
@@ -1479,7 +1506,29 @@
 
     function finishQuestion() {
       if (!state.activeQuestion) return;
-      showSpeakerAnswer(state.activeQuestion);
+      completeCurrentQuestion();
+    }
+
+    function completeCurrentQuestion() {
+      if (!state.activeQuestion) return;
+      stopQuestionAudio();
+      state.completed.add(state.activeQuestion.id);
+      state.activeQuestion = null;
+      state.animatingQuestion = false;
+      state.phase = "scene";
+      answerModal.classList.add("hidden");
+      cardPanel.classList.add("hidden");
+      cardPanel.classList.remove("pop-in");
+      state.acceptingQuestions = true;
+      app.classList.add("questions-open");
+      renderJournalists();
+      updateQuestionButton();
+      if (state.completed.size === questions.length) {
+        statusText.textContent = "本场记者提问已完成。可根据课堂节奏进行总结。";
+      } else {
+        statusText.textContent = "已回到发布会现场。请继续点击下一位记者头顶的感叹号。";
+      }
+      syncQuestionMarkers();
     }
 
     function showSpeakerAnswer(q) {
@@ -1503,6 +1552,7 @@
         answerModal.classList.add("hidden");
         return;
       }
+      stopQuestionAudio();
       state.completed.add(state.activeQuestion.id);
       state.activeQuestion = null;
       state.phase = "scene";
@@ -1531,6 +1581,7 @@
 
     function backToScene() {
       state.animatingQuestion = false;
+      stopQuestionAudio();
       document.querySelectorAll(".reporter-bubble.asking, .reporter-bubble.bubble-out").forEach((el) => {
         el.classList.remove("asking", "bubble-out");
       });
@@ -1610,6 +1661,11 @@
     function updateQuestionButton() {
       const btn = $("#materialToggle");
       if (!btn) return;
+      if (state.completed.size === questions.length) {
+        btn.textContent = "记者提问完成";
+        btn.disabled = true;
+        return;
+      }
       btn.textContent = state.acceptingQuestions ? "记者提问中" : "开始接受记者提问";
       btn.disabled = state.acceptingQuestions;
     }
@@ -1754,10 +1810,8 @@
             <div class="wx-label">微信语音通话</div>
             <div class="wx-avatar">外</div>
             <h2>外交部例行记者会现场</h2>
-            <p>教师可说：“让我们来拨打现场电话，连接发布会现场。”</p>
             <div class="call-status"><span></span><strong id="callStatusText">微信语音通话</strong></div>
             <button class="connect-btn" id="ringBtn" onclick="answerCall()">拨打外交部现场电话</button>
-            <div class="ring-help" id="ringHint">点击后播放电话铃声，约 4 秒后自动进入现场。</div>
             <div class="call-orb" aria-hidden="true">
               <div class="call-icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -1783,7 +1837,7 @@
         intro.classList.add("connecting");
         setTimeout(() => sound("connect"), 120);
         setTimeout(() => sound("shutter"), 260);
-      }, 3300);
+      }, 8000);
       setTimeout(() => {
         stopRingtone();
         intro.classList.add("hidden");
@@ -1796,7 +1850,7 @@
         statusText.textContent = "已连线发布会现场。请教师点击开始接受记者提问。";
         updateQuestionButton();
         syncQuestionMarkers();
-      }, 4300);
+      }, 9000);
     }
 
     window.finishQuestion = finishQuestion;
